@@ -73,7 +73,7 @@ The PowerShell script does not gather information on public folders or analyzes 
 
 ## Example Report
 
-![Example Report](/images/screenshot.png)
+![Example Report](/Exchange%20Server/Get-ExchangeEnvironmentReport/images/screenshot.png)
 
 ## Parameters
 
