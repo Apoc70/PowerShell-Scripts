@@ -1,6 +1,6 @@
 # PowerShell Scripts
 
-This GitHub Repository contains most of my public PowerShell scripts. In the past I used dedicated repositories per script. I will archive those repositories after mvong the scrip to this repository. C#-related projects remain in separate repositories.
+This GitHub Repository contains most of my public PowerShell scripts. In the past I used dedicated repositories per script. I will archive those repositories after moving the script to this repository. C#-related projects remain in separate repositories.
 
 ## Modern Exchange Server
 
@@ -19,6 +19,7 @@ Scripts for Exchange 2013, 2016, and 2019
 
 Scripts for Exchange Server 2010 and older
 
+- TBD
 
 ### Stay connected
 
