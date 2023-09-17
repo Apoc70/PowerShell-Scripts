@@ -6,12 +6,15 @@ This GitHub Repository contains most of my public PowerShell scripts. In the pas
 
 Scripts for Exchange 2013, 2016, and 2019
 
-- [Copy-ReceiveConnector.ps1](https://github.com/Apoc70/PowerShell-Scripts/tree/main/Exchange%20Server/Copy-ReceiveConnector)
+- [Copy-ReceiveConnector.ps1](/Exchange%20Server/Copy-ReceiveConnector)
 
   Copy a selected receive connector and it's configuration and permissions to other Exchange Servers
 
+- [Get-ExchangeEnvironmentReport.ps1](/Exchange%20Server/Get-ExchangeEnvironmentReport)
 
-- [Export-MessageQueue.ps1](https://github.com/Apoc70/PowerShell-Scripts/tree/main/Exchange%20Server/Export-MessageQueue)
+  Creates an HTML report describing the On-Premises Exchange environment.
+
+- [Export-MessageQueue.ps1](/Exchange%20Server/Export-MessageQueue)
 
   Export messages from a transport queue to file system for manual replay
 
