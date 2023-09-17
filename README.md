@@ -6,7 +6,7 @@ This GitHub Repository contains most of my public PowerShell scripts. In the pas
 
 Scripts for Exchange 2013, 2016, and 2019
 
-- [Copy-ReceiveConnector.ps1]()
+- [Copy-ReceiveConnector.ps1](https://github.com/Apoc70/PowerShell-Scripts/tree/main/Exchange%20Server/Copy-ReceiveConnector)
 
   Copy a selected receive connector and it's configuration and permissions to other Exchange Servers
 
