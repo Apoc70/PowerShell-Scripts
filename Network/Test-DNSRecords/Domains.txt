@@ -1,0 +1,4 @@
+Domain,TenantDomain
+varunagroup.de,
+ixion-inc.de,
+granikos.eu,granikoseu.onmicrosoft.com
