@@ -11,7 +11,7 @@ Scripts for Exchange 2013, 2016, and 2019
   Copy a selected receive connector and it's configuration and permissions to other Exchange Servers
 
 
-- [Export-MessageQueue.ps1]()
+- [Export-MessageQueue.ps1](https://github.com/Apoc70/PowerShell-Scripts/tree/main/Exchange%20Server/Export-MessageQueue)
 
   Export messages from a transport queue to file system for manual replay
 
