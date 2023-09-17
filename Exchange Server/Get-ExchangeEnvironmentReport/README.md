@@ -158,18 +158,15 @@ RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS CODE REMAINS WITH THE USER.
 
 Based on the original 1.6.2 version by Steve Goodman.
 
-## Stay connected
+### Stay connected
 
 - My Blog: [https://blog.granikos.eu](https://blog.granikos.eu)
 - Twitter: [https://twitter.com/stensitzki](https://twitter.com/stensitzki)
 - LinkedIn: [http://de.linkedin.com/in/thomasstensitzki](http://de.linkedin.com/in/thomasstensitzki)
-- Github: [https://github.com/Apoc70](https://github.com/Apoc70)
-- MVP Blog: [https://blogs.msmvps.com/thomastechtalk/](https://blogs.msmvps.com/thomastechtalk/)
-- Tech Talk YouTube Channel (DE): [http://techtalk.granikos.eu](http://techtalk.granikos.eu)
-- Podcast (DE): [http://podcast.granikos.eu](http://podcast.granikos.eu)
+- YouTube: [https://www.youtube.com/@ThomasStensitzki](https://www.youtube.com/@ThomasStensitzki)
 - LinkTree: [https://linktr.ee/stensitzki](https://linktr.ee/stensitzki)
 
-For more Exchange Server, Microsoft 365, and Cloud Security checkout the services provided by Granikos.
+For more Office 365, Cloud Security, and Exchange Server stuff checkout services provided by Granikos
 
-- Website: [https://granikos.eu](https://granikos.eu)
+- Website: [https://www.granikos.eu/en/](https://www.granikos.eu/en/)
 - Twitter: [https://twitter.com/granikos_de](https://twitter.com/granikos_de)
