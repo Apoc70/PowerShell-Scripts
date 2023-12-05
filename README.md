@@ -24,15 +24,29 @@ Scripts for Exchange Server 2010 and older
 
 - TBD
 
+## Misc
+
+Some usefull scripts not Exchange related
+
+- [Get-Diskspace.ps1](/Misc/Get-Diskspace)
+
+Fetches disk/volume information from a given computer
+
+## Network
+
+
+
+- [Test-DNSRecords.ps1](/Network/Test-DNSRecords)
+
 ### Stay connected
 
 - My Blog: [https://blog.granikos.eu](https://blog.granikos.eu)
-- Twitter: [https://twitter.com/stensitzki](https://twitter.com/stensitzki)
-- LinkedIn: [http://de.linkedin.com/in/thomasstensitzki](http://de.linkedin.com/in/thomasstensitzki)
+- Bluesky: [https://bsky.app/profile/stensitzki.bsky.social](https://bsky.app/profile/stensitzki.bsky.social)
+- LinkedIn: [https://www.linkedin.com/in/thomasstensitzki](https://www.linkedin.com/in/thomasstensitzki)
 - YouTube: [https://www.youtube.com/@ThomasStensitzki](https://www.youtube.com/@ThomasStensitzki)
 - LinkTree: [https://linktr.ee/stensitzki](https://linktr.ee/stensitzki)
 
 For more Office 365, Cloud Security, and Exchange Server stuff checkout services provided by Granikos
 
 - Website: [https://www.granikos.eu/en/](https://www.granikos.eu/en/)
-- Twitter: [https://twitter.com/granikos_de](https://twitter.com/granikos_de)
+- Bluesky: [https://bsky.app/profile/granikos.bsky.social](https://bsky.app/profile/granikos.bsky.social)
