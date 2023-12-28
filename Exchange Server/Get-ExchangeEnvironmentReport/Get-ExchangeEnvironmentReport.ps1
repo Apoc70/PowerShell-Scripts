@@ -1,13 +1,32 @@
 <#
+    MIT License
+
+    Copyright (c) Thomas Stensitzki
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE
+#>
+
+# Version 2.6.0, 2021-12-23
+
+<#
     .SYNOPSIS
     Creates an HTML report describing the On-Premises Exchange environment.
-
-    Thomas Stensitzki
-
-    THIS CODE IS MADE AVAILABLE AS IS, WITHOUT WARRANTY OF ANY KIND. THE ENTIRE
-    RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS CODE REMAINS WITH THE USER.
-
-    Version 2.5 August 2023
 
     Based on the original 1.6.2 version by Steve Goodman
 
@@ -33,7 +52,7 @@
     * Internal, External and CAS Array Hostnames
     * Exchange Servers with:
       o Exchange Server Version
-      o Service Pack
+      o Service Pack and Security Update Level
       o Number of preferred and maximum active databases
       o Update Rollup and rollup version
       o Roles installed on server and mailbox counts
@@ -70,7 +89,7 @@
     it is run from to determine OS version, Update Rollup, Exchange 2007/2003 cluster and DB size information.
 
     .LINK
-    https://github.com/Apoc70/Get-ExchangeEnvironmentReport
+    https://github.com/Apoc70/PowerShell-Scripts
 
     .PARAMETER HTMLReport
     Filename to write HTML Report to
@@ -542,8 +561,10 @@ function Get-ExchangeServerInformation {
     }
 
     # Exchange 2013+ CU or SP Level
+    # 2023-12-28 TST, added Exchange SU support
     if ($ExchangeMajorVersion -ge 15) {
       $RegKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Microsoft Exchange v15"
+      $RegKeyBuildVersion = "SOFTWARE\\Microsoft\\ExchangeServer\\v15\\Setup"
       # 2019-05-17 Thomas Stensitzki, try/catch added
       try {
         $RemoteRegistry = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $ExchangeServer.Name)
@@ -568,6 +589,15 @@ function Get-ExchangeServerInformation {
       }
       else {
         Write-Warning -Message ('Cannot detect CU/SP via Remote Registry for {0}' -f $ExchangeServer.Name)
+      }
+
+      if ($RemoteRegistry){
+        $ExchangeOwaVersion = $RemoteRegistry.OpenSubKey($RegKeyBuildVersion).GetValue('OwaVersion')
+
+        $SUVersion = $ExchangeOwaVersion #$ExSUString.GetEnumerator() | Where-Object { $_.Key -eq $ExchangeOwaVersion } | Select-Object -ExpandProperty Value
+      }
+      else {
+        $SUVersion = 'XX'
       }
     }
   }
@@ -626,11 +656,12 @@ function Get-ExchangeServerInformation {
     ExchangeSPLevel           = $ExchangeSPLevel
     Edition                   = $ExchangeServer.Edition
     Mailboxes                 = $MailboxCount
-    OSVersion                 = $OSVersion;
+    OSVersion                 = $OSVersion
     OSServicePack             = $OSServicePack
     Roles                     = $Roles
     RollupLevel               = $RollupLevel
     RollupVersion             = $RollupVersion
+    SuVersion                 = $SUVersion
     Site                      = $ExchangeServer.Site.Name
     MailboxStatistics         = $MailboxStatistics
     Disks                     = $Disks
@@ -840,7 +871,7 @@ function Get-HtmlOverview {
       $Output += (' ({0})' -f $Server.RealName)
     }
 
-    $Output += "</td><td>$($ExVersionStrings["$($Server.ExchangeMajorVersion).$($Server.ExchangeSPLevel)"].Long)"
+    $Output += "</td><td>$($ExVersionStrings["$($Server.ExchangeMajorVersion).$($Server.ExchangeSPLevel)"].Long) $($ExSUString[$Server.SuVersion])</td>"
 
     if ($Server.RollupLevel -gt 0) {
       $Output += (' UR{0}' -f $Server.RollupLevel)
@@ -1271,6 +1302,41 @@ $ExSPLevelStrings = @{
 # Add many CUs
 for ($i = 1; $i -le 40; $i++) {
   $ExSPLevelStrings.Add("CU$($i)", "CU$($i)");
+}
+
+# Security Update Mapping
+# 2019-05-17 TST Security Update Mapping added
+$ExSUString = @{
+  # Exchange 2019 CU13
+  '15.2.1258.28' = 'Nov23SU'
+  '15.2.1258.27' = 'Oct23SU'
+  '15.2.1258.25' = 'Aug23SUv2'
+  '15.2.1258.23' = 'Aug23SU'
+  '15.2.1258.16' = 'Jun23SU'
+
+  # Exchange 2019 CU12
+  '15.2.1118.40' = 'Nov23SU'
+  '15.2.1118.39' = 'Oct23SU'
+  '15.2.1118.37' = 'Aug23SUv2'
+  '15.2.1118.36' = 'Aug23SU'
+  '15.2.1118.30' = 'Jun23SU'
+  '15.2.1118.26' = 'Mar23SU'
+  '15.2.1118.25' = 'Feb23SU'
+  '15.2.1118.21' = 'Jan23SU'
+  '15.2.1118.20' = 'Nov22SU'
+  '15.2.1118.15' = 'Oct22SU'
+  '15.2.1118.12' = 'Aug22SU'
+  '15.2.1118.9'  = 'Mar22SU'
+
+  # Exchange 2016 CU23
+  '15.1.2507.35' = 'Nov23SU'
+  '15.1.2507.34' = 'Oct23SU'
+  '15.1.2507.32' = 'Aug23SUv2'
+  '15.1.2507.31' = 'Aug23SU'
+  '15.1.2507.27' = 'Jun23SU'
+  '15.1.2507.23' = 'Mar23SU'
+  '15.1.2507.21' = 'Feb23SU'
+  '15.1.2507.17' = 'Jan23SU'
 }
 
 # 1.5.9 Populate Full Mapping using above info
