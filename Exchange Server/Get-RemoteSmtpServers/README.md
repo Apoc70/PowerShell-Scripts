@@ -71,17 +71,15 @@ Written by: Thomas Stensitzki | MVP
 
 Related blog post: [https://granikos.eu/fetch-remote-smtp-servers-connecting-to-exchange/](https://granikos.eu/fetch-remote-smtp-servers-connecting-to-exchange/)
 
-## Stay connected
+### Stay connected
 
-- Blog: [https://blog.granikos.eu](https://blog.granikos.eu)
-- Twitter: [https://twitter.com/stensitzki](https://twitter.com/stensitzki)
-- LinkedIn: [http://de.linkedin.com/in/thomasstensitzki](http://de.linkedin.com/in/thomasstensitzki)
-- Github: [https://github.com/Apoc70](https://github.com/Apoc70)
-- MVP Blog: [https://blogs.msmvps.com/thomastechtalk/](https://blogs.msmvps.com/thomastechtalk/)
-- Tech Talk YouTube Channel (DE): [http://techtalk.granikos.eu](http://techtalk.granikos.eu)
-- Tech & Community Podcast (DE): [http://podcast.granikos.eu](http://podcast.granikos.eu)
+- My Blog: [https://blog.granikos.eu](https://blog.granikos.eu)
+- Bluesky: [https://bsky.app/profile/stensitzki.bsky.social](https://bsky.app/profile/stensitzki.bsky.social)
+- LinkedIn: [https://www.linkedin.com/in/thomasstensitzki](https://www.linkedin.com/in/thomasstensitzki)
+- YouTube: [https://www.youtube.com/@ThomasStensitzki](https://www.youtube.com/@ThomasStensitzki)
+- LinkTree: [https://linktr.ee/stensitzki](https://linktr.ee/stensitzki)
 
-For more Microsoft 365, Cloud Security, and Exchange Server stuff checkout the services provided by Granikos
+For more Office 365, Cloud Security, and Exchange Server stuff checkout services provided by Granikos
 
-- Website: [https://granikos.eu](https://granikos.eu)
-- Twitter: [https://twitter.com/granikos_de](https://twitter.com/granikos_de)
+- Website: [https://www.granikos.eu/en/](https://www.granikos.eu/en/)
+- Bluesky: [https://bsky.app/profile/granikos.bsky.social](https://bsky.app/profile/granikos.bsky.social)

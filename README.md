@@ -30,6 +30,10 @@ Scripts for Exchange 2013, 2016, and 2019
 
   Fetch all remote SMTP servers from Exchange receive connector logs
 
+- [Start-MailboxImport.ps1](/Exchange%20Server/Start-MailboxImport)
+
+  Import one or more pst files into an exisiting mailbox or a archive
+
 ## Legacy Exchange Server
 
 Scripts for Exchange Server 2010 and older
@@ -46,7 +50,7 @@ Fetches disk/volume information from a given computer
 
 ## Network
 
-
+Some useful network related scripts
 
 - [Test-DNSRecords.ps1](/Network/Test-DNSRecords)
 
