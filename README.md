@@ -8,7 +8,7 @@ Script for Exchange Online
 
 - [Move-MigrationUser.ps1](/Exchange%20Online/Move-MigrationUser)
 
-This script creates a new migration batch and moves migration users from one batch to the new batch
+  This script creates a new migration batch and moves migration users from one batch to the new batch
 
 ## Modern Exchange Server
 
@@ -25,6 +25,10 @@ Scripts for Exchange 2013, 2016, and 2019
 - [Export-MessageQueue.ps1](/Exchange%20Server/Export-MessageQueue)
 
   Export messages from a transport queue to file system for manual replay
+
+- [Get-RemoteSmtpServers.ps1](/Exchange%20Server/Get-RemoteSmtpServers)
+
+  Fetch all remote SMTP servers from Exchange receive connector logs
 
 ## Legacy Exchange Server
 
