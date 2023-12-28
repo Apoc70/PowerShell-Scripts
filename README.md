@@ -2,6 +2,14 @@
 
 This GitHub Repository contains most of my public PowerShell scripts. In the past I used dedicated repositories per script. I will archive those repositories after moving the script to this repository. C#-related projects remain in separate repositories.
 
+## Exchange Online
+
+Script for Exchange Online
+
+- [Move-MigrationUser.ps1](/Exchange%20Online/Move-MigrationUser)
+
+This script creates a new migration batch and moves migration users from one batch to the new batch
+
 ## Modern Exchange Server
 
 Scripts for Exchange 2013, 2016, and 2019
