@@ -34,6 +34,10 @@ Scripts for Exchange 2013, 2016, and 2019
 
   Import one or more pst files into an exisiting mailbox or a archive
 
+- [New-TeamMailbox.ps1](/Exchange%20Server/New-TeamMailbox)
+
+  Creates a new shared mailbox, security groups for full access and send-as permission and adds the security groups to the shared mailbox configuration.
+
 ## Legacy Exchange Server
 
 Scripts for Exchange Server 2010 and older

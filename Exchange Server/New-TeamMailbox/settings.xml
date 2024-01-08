@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<Settings>
+	<GroupSettings>
+		<Prefix>pre_</Prefix>
+		<SendAsSuffix>_SA</SendAsSuffix>
+		<FullAccessSuffix>_FA</FullAccessSuffix>
+		<CalendarBookingSuffix>_CB</CalendarBookingSuffix>
+		<TargetOU>mcsmemail.de/IT/Groups/Mail</TargetOU>
+		<Domain>mcsmemail.de</Domain>
+		<Seperator>-</Seperator>
+	</GroupSettings>
+	<AccountSettings>
+		<TargetOU>mcsmemail.de/IT/SharedMailboxes</TargetOU>
+	</AccountSettings>
+	<GeneralSettings>
+		<Sleep>60</Sleep>
+		<RemoteRoutingAddress>TENANT.mail.onmicrosoft.com</RemoteRoutingAddress>
+	</GeneralSettings>
+	<Extensions>
+		<extAttr14>AADSync</extAttr14>
+	</Extensions>
+</Settings>
