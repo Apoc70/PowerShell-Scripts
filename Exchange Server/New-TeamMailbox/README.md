@@ -6,6 +6,8 @@ Creates a new shared mailbox, security groups for full access and send-as permis
 
 This scripts creates a new shared mailbox (aka team mailbox) and security groups for full access and and send-as delegation. Security groups are created using a naming convention.
 
+Starting with v1.4 the script sets the sAMAccountName of the security groups to the group name to avoid numbered name extension of sAMAccountName.
+
 ## Parameters
 
 ### TeamMailboxName
