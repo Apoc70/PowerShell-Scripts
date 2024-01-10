@@ -38,6 +38,10 @@ Scripts for Exchange 2013, 2016, and 2019
 
   Creates a new shared mailbox, security groups for full access and send-as permission and adds the security groups to the shared mailbox configuration.
 
+- [New-RoomMailbox.ps1](/Exchange%20Server/New-RoomMailbox)
+
+  This scripts creates a new room mailbox and security groups for full access and and send-as delegation. As a third security group a dedicated group for allowed users to book the new room is created. The CalenderBooking security group is only created, but not assigned to the room mailbox. Security groups are created using a naming convention.
+
 ## Legacy Exchange Server
 
 Scripts for Exchange Server 2010 and older
