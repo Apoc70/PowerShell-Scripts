@@ -8,7 +8,7 @@
   THIS CODE IS MADE AVAILABLE AS IS, WITHOUT WARRANTY OF ANY KIND. THE ENTIRE
   RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS CODE REMAINS WITH THE USER.
 
-  Version 1.4, 2024-01-10
+  Version 1.4, 2024-01-15
 
   Please send ideas, comments and suggestions to support@granikos.eu
 
@@ -20,13 +20,18 @@
   for full access and and send-as delegation. The security groups are created
   using a confgurable naming convention.
 
+  You can add existing groups to the full access and send-as to a room mailbox.
+  This is useful, if you have a room management department and want to grant permissions.
+
+  The script adds the room mailbox to an existing room list, if configured.
+
   All required settings are stored in a separate settings.xml file
 
   .NOTES
   Requirements
-  - Windows Server 2019+
-  - Exchange 2016+ Management Shell (aka EMS)
-
+    - Windows Server 2016+
+    - Exchange 2016+ Management Shell (aka EMS)
+    - settings.xml in same folder as script containg general settings and group settings
 
   Revision History
   --------------------------------------------------------------------------------
@@ -34,7 +39,8 @@
   1.1 Some PowerShell hygiene, issue #2 closed
   1.2 CalendarBooking added, issue #1 closed
   1.3 Set extensionAttr14 to "AADsync" to make AD objects (Mailbox, DistributionGroups) public to Entra ID
-  1.4
+  1.4 Set sAMAccountName to group name for avoid numbered name extension of sAMAccountName
+      Static group assignment for full access and send-as permission added
 
   .PARAMETER RoomMailboxName
   Name attribute of the new team mailbox
@@ -81,11 +87,11 @@
 
 #>
 param (
-  [parameter(Mandatory,HelpMessage='Room Mailbox Name')]
+  [parameter(Mandatory, HelpMessage = 'Room Mailbox Name')]
   [string]$RoomMailboxName,
-  [parameter(Mandatory,HelpMessage='Room Mailbox Display Name')]
+  [parameter(Mandatory, HelpMessage = 'Room Mailbox Display Name')]
   [string]$RoomMailboxDisplayName,
-  [parameter(Mandatory,HelpMessage='Room Mailbox Alias')]
+  [parameter(Mandatory, HelpMessage = 'Room Mailbox Alias')]
   [string]$RoomMailboxAlias,
   [string]$RoomMailboxSmtpAddress = '',
   [string]$DepartmentPrefix = '',
@@ -101,43 +107,68 @@ param (
 # Script Path
 $scriptPath = Split-Path -Parent -Path $MyInvocation.MyCommand.Path
 
-if(Test-Path -Path ('{0}\Settings.xml' -f $scriptPath)) {
-    # Load Script settings
-    [xml]$Config = Get-Content -Path ('{0}\Settings.xml' -f $scriptPath)
+if (Test-Path -Path ('{0}\Settings.xml' -f $scriptPath)) {
+  # Load Script settings
+  [xml]$Config = Get-Content -Path ('{0}\Settings.xml' -f $scriptPath)
 
-    Write-Verbose -Message 'Loading script settings'
+  Write-Verbose -Message 'Loading script settings'
 
-    # Group settings
-    $groupPrefix = $Config.Settings.GroupSettings.Prefix
-    $groupSendAsSuffix = $Config.Settings.GroupSettings.SendAsSuffix
-    $groupFullAccessSuffix = $Config.Settings.GroupSettings.FullAccessSuffix
-    $groupCalendarBookingSuffix = $Config.Settings.GroupSettings.CalendarBookingSuffix
-    $groupTargetOU = $Config.Settings.GroupSettings.TargetOU
-    $groupDomain = $Config.Settings.GroupSettings.Domain
-    $groupPrefixSeperator = $Config.Settings.GroupSettings.Seperator
+  # Group settings
+  $groupPrefix = $Config.Settings.GroupSettings.Prefix
+  $groupSendAsSuffix = $Config.Settings.GroupSettings.SendAsSuffix
+  $groupFullAccessSuffix = $Config.Settings.GroupSettings.FullAccessSuffix
+  $groupCalendarBookingSuffix = $Config.Settings.GroupSettings.CalendarBookingSuffix
+  $groupTargetOU = $Config.Settings.GroupSettings.TargetOU
+  $groupDomain = $Config.Settings.GroupSettings.Domain
+  $groupPrefixSeperator = $Config.Settings.GroupSettings.Seperator
 
-    # Team mailbox settings
-    $roomMailboxTargetOU = $Config.Settings.AccountSettings.TargetOU
+  # Team mailbox settings
+  $roomMailboxTargetOU = $Config.Settings.AccountSettings.TargetOU
 
-    # General settings
-    $sleepSeconds = $Config.Settings.GeneralSettings.Sleep
+  # General settings
+  $sleepSeconds = $Config.Settings.GeneralSettings.Sleep
 
-    # Extensions settings
-    $extAttr14 = $Config.Settings.Extensions.extAttr14
+  # Additional access security groups for all room mailboxes
+  $groupStaticFullAccess = $Config.Settings.GeneralSettings.StaticFullAccessGroup
+  $groupStaticSendAs = $Config.Settings.GeneralSettings.StaticSendAsGroup
 
-    Write-Verbose -Message 'Script settings loaded'
+  # Extensions settings
+  # Adjust as needed, if you use a different extension attribute
+  $extAttr14 = $Config.Settings.Extensions.extAttr14
+
+  Write-Verbose -Message 'Script settings loaded'
 }
 else {
-    Write-Error -Message 'Script settings file settings.xml missing'
-    exit 99
+  Write-Error -Message 'Script settings file settings.xml missing'
+  exit 99
 }
+
+function Test-AdGroup {
+  param(
+    [string]$AdGroupName = ''
+  )
+
+  try {
+    # Check if security group already exists
+    Write-Verbose -Message ('Get-ADGroup -Identity {0} -ErrorAction SilentlyContinue' -f $RoomList)
+    $adGroupFound = Get-ADGroup -Identity $groupSamAccountName -ErrorAction SilentlyContinue
+  }
+  catch {
+    # Group does not exist
+    $adGroupFound = $false
+  }
+
+  return $adGroupFound
+}
+
+### MAIN
 
 Write-Host ('Note: Script will pause for {0}s between steps' -f ($sleepSeconds))
 
 # Add department prefix to group prefix, if configured
-if($DepartmentPrefix -ne '') {
-    # Change pattern as needed
-    $groupPrefix = ('{0}{1}{2}' -f $groupPrefix, $DepartmentPrefix, $groupPrefixSeperator)
+if ($DepartmentPrefix -ne '') {
+  # Change pattern as needed
+  $groupPrefix = ('{0}{1}{2}' -f $groupPrefix, $DepartmentPrefix, $groupPrefixSeperator)
 }
 
 # Create shared team mailbox
@@ -155,10 +186,8 @@ Write-Verbose -Message ('Set-Mailbox -Identity  {0} -CustomAttribute14 {1}' -f $
 
 $null = Set-Mailbox -Identity $RoomMailboxName -CustomAttribute14 $extAttr14
 
-
-
 # Set room capacity, if defined
-if($RoomCapacity -ne 0) {
+if ($RoomCapacity -ne 0) {
   Start-Sleep -Seconds $sleepSeconds
 
   # Set room capacity
@@ -177,7 +206,7 @@ if ($AutoAccept) {
 }
 
 # Configure Language Regional Configuration
-if($Language -ne '') {
+if ($Language -ne '') {
 
   Write-Verbose -Message ('Setting calendar regional configuration language to {0}' -f $Language)
 
@@ -186,11 +215,18 @@ if($Language -ne '') {
 
 # Add to room list
 if ($RoomList -ne '') {
-  Start-Sleep -Seconds $sleepSeconds
 
-  Write-Verbose -Message ('Adding mailbox to room list {0}' -f ($RoomList))
+  if (Test-AdGroup -AdGroupName $RoomList) {
 
-  Add-DistributionGroupMember -Identity $RoomList -Member $RoomMailboxAlias
+    Start-Sleep -Seconds $sleepSeconds
+
+    Write-Verbose -Message ('Adding mailbox to room list {0}' -f $RoomList)
+
+    Add-DistributionGroupMember -Identity $RoomList -Member $RoomMailboxAlias
+  }
+  else {
+    Write-Verbose -Message ('Room list {0} nor found' -f $RoomList)
+  }
 }
 
 # Change phone number
@@ -202,118 +238,171 @@ if ($RoomPhoneNumber -ne '') {
 
     Write-Verbose -Message ('Room phone number set to {0}' -f ($RoomPhoneNumber))
   }
-  catch{
+  catch {
     Write-Verbose -Message 'Phone number could not be set'
   }
 }
 
-#region Access Groups
+#region Create FullAccess security group
 
 # Create Full Access group
 $groupName = ('{0}{1}{2}' -f $groupPrefix, $RoomMailboxAlias, $groupFullAccessSuffix)
 $notes = ('FullAccess for mailbox: {0}' -f $RoomMailboxName)
 $primaryEmail = ('{0}@{1}' -f $groupName, $groupDomain)
 
-Write-Host ('Creating new FullAccess Group: {0}' -f $groupName)
+# 2024-01-10 - v1.4
+# Set sAMAccountName to group name for avoid numbered name extension of sAMAccountName, change sAMAccountName pattern as needed
+# This script simply uses the group name as sAMAccountName
+$groupSamAccountName = $groupName
 
-Write-Verbose -Message ('New-DistributionGroup -Name {0} -Type Security -OrganizationalUnit {1} -PrimarySmtpAddress {2}' -f $groupName, $groupTargetOU, $primaryEmail)
+Write-Host ('Creating new FullAccess Group: {0} (sAMAccountName: {1})' -f $groupName, $groupSamAccountName)
 
-if(($GroupFullAccessMembers | Measure-Object).Count -ne 0) {
+# 2024-01-08 - v1.4
+if (!(Test-AdGroup -AdGroupName $groupSamAccountName)) {
+  # Group does not exist
+  Write-Verbose -Message ('New-DistributionGroup -Name {0} -Type Security -OrganizationalUnit {1} -PrimarySmtpAddress {2}' -f $groupName, $groupTargetOU, $primaryEmail)
 
-    Write-Host ('Creating FullAccess group and adding members: {0}' -f $groupName)
+  if (($GroupFullAccessMembers | Measure-Object).Count -ne 0) {
 
-    $null = New-DistributionGroup -Name $groupName -Type Security -OrganizationalUnit $groupTargetOU -PrimarySmtpAddress $primaryEmail -Members $GroupFullAccessMembers -Notes $notes
+    Write-Host ('Creating FullAccess group and adding members: {0} (sAMAccountName: {1})' -f $groupName, $groupSamAccountName)
+
+    $null = New-DistributionGroup -Name $groupName -Type Security -OrganizationalUnit $groupTargetOU -PrimarySmtpAddress $primaryEmail -Members $GroupFullAccessMembers -Notes $notes -SamAccountName $groupSamAccountName
 
     Start-Sleep -Seconds $sleepSeconds
+  }
+  else {
+
+    Write-Host ('Creating empty FullAccess group: {0} (sAMAccountName: {1})' -f $groupName, $groupSamAccountName)
+
+    $null = New-DistributionGroup -Name $groupName -Type Security -OrganizationalUnit $groupTargetOU -PrimarySmtpAddress $primaryEmail -Notes $notes -SamAccountName $groupSamAccountName
+
+    Start-Sleep -Seconds $sleepSeconds
+
+  }
+
+  # Hide FullAccess group from GAL
+  Set-DistributionGroup -Identity $primaryEmail -HiddenFromAddressListsEnabled $true -EmailAddressPolicyEnabled $false
+
+  # Add extensionAttribute (i.e., to include object in Entra ID Connect sync)
+  Write-Verbose -Message ('Set-DistributionGroup -Identity  {0} -CustomAttribute14 {1}' -f $primaryEmail, $extAttr14)
+
+  $null = Set-DistributionGroup -Identity $primaryEmail -CustomAttribute14 $extAttr14
+
+  # Add full access group to mailbox permissions
+
+  Write-Verbose -Message ('Add-MailboxPermission -Identity {0} -User {1}' -f $RoomMailboxName, $primaryEmail)
+
+  $null = Add-MailboxPermission -Identity $RoomMailboxName -User $primaryEmail -AccessRights FullAccess -InheritanceType all
+
+  # Assign an existing static full access group, if configured
+  # This group can be used to grant full access to all room mailboxes for a room management department
+  if ($groupStaticFullAccess -ne '') {
+    if (Get-DistributionGroup -Identity $groupStaticFullAccess -ErrorAction SilentlyContinue) {
+      # Only assign static full access group, if it exists
+      $null = Add-MailboxPermission -Identity $RoomMailboxName -User $groupStaticFullAccess -AccessRights FullAccess -InheritanceType all
+    }
+  }
 }
 else {
-
-    Write-Host ('Creating empty FullAccess group: {0}' -f $groupName)
-
-    $null = New-DistributionGroup -Name $groupName -Type Security -OrganizationalUnit $groupTargetOU -PrimarySmtpAddress $primaryEmail -Notes $notes
-
-    Start-Sleep -Seconds $sleepSeconds
-
+  # Group exists
+  Write-Host ('FullAccess Group with sAMAccountName {0} already exists. Script will exit.' -f $groupSamAccountName)
+  exit 99
 }
 
-# Hide FullAccess group from GAL
-Set-DistributionGroup -Identity $primaryEmail -HiddenFromAddressListsEnabled $true -EmailAddressPolicyEnabled $false
+#end region
 
-# Add extensionAttribute (i.e. to include object in Entra ID Connect sync)
-Write-Verbose -Message ('Set-DistributionGroup -Identity  {0} -CustomAttribute14 {1}' -f $primaryEmail, $extAttr14)
-
-$null = Set-DistributionGroup -Identity $primaryEmail -CustomAttribute14 "AADSync"
-
-# Add full access group to mailbox permissions
-
-Write-Verbose -Message ('Add-MailboxPermission -Identity {0} -User {1}' -f $RoomMailboxName, $primaryEmail)
-
-$null = Add-MailboxPermission -Identity $RoomMailboxName -User $primaryEmail -AccessRights FullAccess -InheritanceType all
-
-if (Get-DistributionGroup -Identity 'bkmail_IFM-Besprechungsraum-Verwaltung_FA' -ErrorAction SilentlyContinue) {
-	$null = Add-MailboxPermission -Identity $RoomMailboxName -User 'bkmail_IFM-Besprechungsraum-Verwaltung_FA' -AccessRights FullAccess -InheritanceType all
-}
+#region Create SendAs security group
 
 # Create Send As group
 $groupName = ('{0}{1}{2}' -f $groupPrefix, $RoomMailboxAlias, $groupSendAsSuffix)
 $notes = ('SendAs for mailbox: {0}' -f $RoomMailboxName)
 $primaryEmail = ('{0}@{1}' -f $groupName, $groupDomain)
 
-Write-Host ('Creating new SendAs Group: {0}' -f $groupName)
+# 2024-01-08 - v1.4
+# Set sAMAccountName to group name for avoid numbered name extension of sAMAccountName, change sAMAccountName pattern as needed
+$groupSamAccountName = $groupName
 
-Write-Verbose -Message ('New-DistributionGroup -Name {0} -Type Security -OrganizationalUnit {1} -PrimarySmtpAddress {2}' -f $groupName, $groupTargetOU, $primaryEmail)
+Write-Host ('Creating new SendAs Group: {0} (sAMAccountName: {1})' -f $groupName, $groupSamAccountName)
 
-if(($GroupSendAsMember | Measure-Object).Count -ne 0) {
+# 2024-01-08 - v1.4
+if (!(Test-AdGroup -AdGroupName $groupSamAccountName)) {
 
-  Write-Host ('Creating SendAs group and adding members: {0}' -f $groupName)
+  Write-Verbose -Message ('New-DistributionGroup -Name {0} -Type Security -OrganizationalUnit {1} -PrimarySmtpAddress {2}' -f $groupName, $groupTargetOU, $primaryEmail)
 
-  $null = New-DistributionGroup -Name $groupName -Type Security -OrganizationalUnit $groupTargetOU -PrimarySmtpAddress $primaryEmail -Members $GroupSendAsMember -Notes $notes
+  if (($GroupSendAsMember | Measure-Object).Count -ne 0) {
 
-  Start-Sleep -Seconds $sleepSeconds
+    Write-Host ('Creating SendAs group and adding members: {0} (sAMAccountName: {1})' -f $groupName, $groupSamAccountName)
+
+    $null = New-DistributionGroup -Name $groupName -Type Security -OrganizationalUnit $groupTargetOU -PrimarySmtpAddress $primaryEmail -Members $GroupSendAsMember -Notes $notes -SamAccountName $groupSamAccountName
+
+    Start-Sleep -Seconds $sleepSeconds
+  }
+  else {
+
+    Write-Host ('Creating empty SendAs group: {0} (sAMAccountName: {1})' -f $groupName, $groupSamAccountName)
+
+    $null = New-DistributionGroup -Name $groupName -Type Security -OrganizationalUnit $groupTargetOU -PrimarySmtpAddress $primaryEmail -Notes $notes -SamAccountName $groupSamAccountName
+
+    Start-Sleep -Seconds $sleepSeconds
+  }
+
+  # Hide SendAs from GAL
+  Set-DistributionGroup -Identity $primaryEmail -HiddenFromAddressListsEnabled $true
+
+  # Add extensionAttribute (i.e., to include object in Entra ID Connect sync)
+  Write-Verbose -Message ('Set-DistributionGroup -Identity  {0} -CustomAttribute14 {1}' -f $primaryEmail, $extAttr14)
+
+  $null = Set-DistributionGroup -Identity $primaryEmail -CustomAttribute14 $extAttr14
+
+  # Add SendAs permission
+  Write-Verbose -Message ('Add-ADPermission -Identity {0} -User {1}' -f $RoomMailboxName, $groupName)
+  $null = Add-ADPermission -Identity $RoomMailboxName -User $groupName -ExtendedRights 'Send-As'
+
+  # Assign an existing static send as group, if configured
+  if ($groupStaticFullAccess -ne '') {
+
+    if (Get-DistributionGroup -Identity $groupStaticSendAs -ErrorAction SilentlyContinue) {
+      $null = Add-ADPermission -Identity $RoomMailboxName -User $groupStaticSendAs -ExtendedRights 'Send-As'
+    }
+  }
 }
 else {
-
-  Write-Host ('Creating empty SendAs group: {0}' -f $groupName)
-
-  $null = New-DistributionGroup -Name $groupName -Type Security -OrganizationalUnit $groupTargetOU -PrimarySmtpAddress $primaryEmail -Notes $notes
-
-  Start-Sleep -Seconds $sleepSeconds
+  # Group exists
+  Write-Host ('SendAs Group with sAMAccountName {0} already exists. Script will exit.' -f $groupSamAccountName)
+  exit 99
 }
 
-# Hide SendAs from GAL
-Set-DistributionGroup -Identity $primaryEmail -HiddenFromAddressListsEnabled $true
+#endregion
 
-# Add extensionAttribute (i.e. to include object in Entra ID Connect sync)
-Write-Verbose -Message ('Set-DistributionGroup -Identity  {0} -CustomAttribute14 {1}' -f $primaryEmail, $extAttr14)
-
-$null = Set-DistributionGroup -Identity $primaryEmail -CustomAttribute14 "AADSync"
-
-
-# Add SendAs permission
-Write-Verbose -Message ('Add-ADPermission -Identity {0} -User {1}' -f $RoomMailboxName, $groupName)
-
-$null = Add-ADPermission -Identity $RoomMailboxName -User $groupName -ExtendedRights 'Send-As'
-
-if (Get-DistributionGroup -Identity 'bkmail_IFM-Besprechungsraum-Verwaltung_SA' -ErrorAction SilentlyContinue) {
-	$null = Add-ADPermission -Identity $RoomMailboxName -User 'bkmail_IFM-Besprechungsraum-Verwaltung_SA' -ExtendedRights 'Send-As'
-}
-
+#region Create CalendarBooking security group
 
 # Create CalendarBooking group
 $groupName = ('{0}{1}{2}' -f $groupPrefix, $RoomMailboxAlias, $groupCalendarBookingSuffix)
 $notes = ('CalendarBooking for mailbox: {0}' -f $RoomMailboxName)
 $primaryEmail = ('{0}@{1}' -f $groupName, $groupDomain)
 
-Write-Host ('Creating new CalendarBooking Group: {0}' -f $groupName)
+# 2024-01-08 - v1.4
+# Set sAMAccountName to group name for avoid numbered name extension of sAMAccountName, change sAMAccountName pattern as needed
+$groupSamAccountName = $groupName
 
-Write-Verbose -Message ('New-DistributionGroup -Name {0} -Type Security -OrganizationalUnit {1} -PrimarySmtpAddress {2}' -f $groupName, $groupTargetOU, $primaryEmail)
+Write-Host ('Creating new CalendarBooking Group: {0} (sAMAccountName: {1})' -f $groupName, $groupSamAccountName)
 
-$null = New-DistributionGroup -Name $groupName -Type Security -OrganizationalUnit $groupTargetOU -PrimarySmtpAddress $primaryEmail -Notes $notes
+# 2024-01-08 - v1.4
+if (!(Test-AdGroup -AdGroupName $adGroupFound)) {
+  Write-Verbose -Message ('New-DistributionGroup -Name {0} -Type Security -OrganizationalUnit {1} -PrimarySmtpAddress {2}' -f $groupName, $groupTargetOU, $primaryEmail)
 
-# Add extensionAttribute (i.e. to include object in Entra ID Connect sync)
-Write-Verbose -Message ('Set-DistributionGroup -Identity  {0} -CustomAttribute14 {1}' -f $primaryEmail, $extAttr14)
+  $null = New-DistributionGroup -Name $groupName -Type Security -OrganizationalUnit $groupTargetOU -PrimarySmtpAddress $primaryEmail -Notes $notes -samAccountName $groupSamAccountName
 
-$null = Set-DistributionGroup -Identity $primaryEmail -CustomAttribute14 "AADSync"
+  # Add extensionAttribute (i.e., to include object in Entra ID Connect sync)
+  Write-Verbose -Message ('Set-DistributionGroup -Identity  {0} -CustomAttribute14 {1}' -f $primaryEmail, $extAttr14)
+
+  $null = Set-DistributionGroup -Identity $primaryEmail -CustomAttribute14 $extAttr14
+}
+else {
+  # Group exists
+  Write-Host ('CalendarBooking Group with sAMAccountName {0} already exists. Script will exit.' -f $groupSamAccountName)
+  exit 99
+}
 
 #endregion
 

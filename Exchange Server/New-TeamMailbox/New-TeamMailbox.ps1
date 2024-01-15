@@ -167,12 +167,12 @@ else {
     Write-Verbose -Message ('Set-Mailbox -Identity  {0} -MessageCopyForSendOnBehalfEnabled:$true -MessageCopyForSentAsEnabled:$true' -f $TeamMailboxName)
     $null = Set-Mailbox -Identity $TeamMailboxName -MessageCopyForSendOnBehalfEnabled:$true -MessageCopyForSentAsEnabled:$true
 
-    # Add extensionAttribute (i.e. to include object in Entra ID Connect sync)
+    # Add extensionAttribute (i.e., to include object in Entra ID Connect sync)
     Write-Verbose -Message ('Set-Mailbox -Identity  {0} -CustomAttribute14 {1}' -f $TeamMailboxName, $extAttr14)
     $null = Set-Mailbox -Identity $TeamMailboxName -CustomAttribute14 $extAttr14
 }
 
-#region Create FullAccess ecurity group
+#region Create FullAccess security group
 
 # Create Full Access group for Team Mailbox
 $groupName = ('{0}{1}{2}' -f $groupPrefix, $TeamMailboxAlias, $groupFullAccessSuffix)
@@ -186,7 +186,7 @@ $groupSamAccountName = $groupName
 Write-Host ('Creating new FullAccess Group: {0} (sAMAccountName: {1})' -f $groupName, $groupSamAccountName)
 
 try {
-    # Check ig security group already exists
+    # Check if security group already exists
     Write-Verbose -Message ('Get-ADGroup -Identity {0} -ErrorAction SilentlyContinue' -f $groupSamAccountName)
     $adGroupFound = Get-ADGroup -Identity $groupSamAccountName -ErrorAction SilentlyContinue
 }

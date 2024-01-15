@@ -4,7 +4,9 @@ Creates a new room mailbox, security groups for full access and send-as permissi
 
 ## Description
 
-This scripts creates a new room mailbox and security groups for full access and and send-as delegation. As a third security security a dedicated group for allowed users to book the new room is created. The CalenderBooking security group is only created, but not assigned to the room mailbox. Security groups are created using a naming convention.
+This scripts creates a new room mailbox and additonal security groups for full access and and send-as delegation. The security groups are created using a confgurable naming convention.
+You can add existing groups to the full access and send-as to a room mailbox. This is useful, if you have a room management department and want to grant permissions.
+The script adds the room mailbox to an existing room list, if configured.
 
 ## Parameters
 
