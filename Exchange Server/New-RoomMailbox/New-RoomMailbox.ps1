@@ -8,7 +8,7 @@
   THIS CODE IS MADE AVAILABLE AS IS, WITHOUT WARRANTY OF ANY KIND. THE ENTIRE
   RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS CODE REMAINS WITH THE USER.
 
-  Version 1.4, 2024-01-15
+  Version 1.4, 2024-01-10
 
   Please send ideas, comments and suggestions to support@granikos.eu
 
@@ -20,11 +20,6 @@
   for full access and and send-as delegation. The security groups are created
   using a confgurable naming convention.
 
-  You can add existing groups to the full access and send-as to a room mailbox.
-  This is useful, if you have a room management department and want to grant permissions.
-
-  The script adds the room mailbox to an existing room list, if configured.
-
   All required settings are stored in a separate settings.xml file
 
   .NOTES
@@ -33,6 +28,7 @@
     - Exchange 2016+ Management Shell (aka EMS)
     - settings.xml in same folder as script containg general settings and group settings
 
+
   Revision History
   --------------------------------------------------------------------------------
   1.0 Initial community release
@@ -40,7 +36,6 @@
   1.2 CalendarBooking added, issue #1 closed
   1.3 Set extensionAttr14 to "AADsync" to make AD objects (Mailbox, DistributionGroups) public to Entra ID
   1.4 Set sAMAccountName to group name for avoid numbered name extension of sAMAccountName
-      Static group assignment for full access and send-as permission added
 
   .PARAMETER RoomMailboxName
   Name attribute of the new team mailbox
