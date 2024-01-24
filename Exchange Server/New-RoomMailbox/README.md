@@ -38,7 +38,7 @@ String array containing full access members
 
 String array containing send as members
 
-### GroupCalendarBookingMemebers
+### GroupCalendarBookingMembers
 
 String array containing users having calendar booking rights
 
@@ -56,7 +56,7 @@ Set room mailbox to automatically accept booking requests
 
 ### Language
 
-Locale setting for calendar regional configuration language, e.g. de-DE, en-US
+Locale setting for calendar regional configuration language, e.g., de-DE, en-US
 
 ## Examples
 
