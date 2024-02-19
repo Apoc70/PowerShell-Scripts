@@ -22,7 +22,7 @@
     SOFTWARE
 #>
 
-# Version 2.6.0, 2021-12-23
+# Version 2.6.0, 2024-01-16
 
 <#
     .SYNOPSIS
@@ -116,6 +116,9 @@
     .PARAMETER ShowDriveNames
     Include drive names of EDB file path and LOG file folder in database report table
 
+    .PARAMETER ShowAverageMailboxSizeInGB
+    List average mailbox and archive mailbox size in GB instead of MB
+
     .PARAMETER CssFileName
     The filename containing the Cascading Style Sheet (CSS) information fpr the HTML report
     Default: EnvironmentReport.css
@@ -123,6 +126,10 @@
     .EXAMPLE
     Generate the HTML report
     .\Get-ExchangeEnvironmentReport.ps1 -HTMLReport .\report.html
+
+    .EXAMPLE
+    Generate the HTML report and display average mailbox sizes in GB instead of MB
+    .\Get-ExchangeEnvironmentReport.ps1 -HTMLReport .\report.html -ShowAverageMailboxSizeInGB
 
     .EXAMPLE
     Generate the HTML report using a custom CSS file
@@ -147,16 +154,25 @@ param(
   [bool]$ViewEntireForest = $true,
   [string]$ServerFilter = '*',
   [switch]$ShowDriveNames,
+  [switch]$ShowAverageMailboxSizeInGB,
+  [switch]$ShowRunTime,
   [string]$CssFileName = 'EnvironmentReport.css'
 )
 
+# Start Stop Watch
+$StopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+
 # Warning Limits, adjust as needed
-$MinFreeDiskspace = 10 # Mark free space less than this value (%) in red
+$MinFreeDiskspace = 30 # Mark free space less than this value (%) in red
 $MaxDatabaseSize = 250 # Mark database larger than this value (GB) in red
+
+# Version
+$ScriptVersion = '2.6.0'
 
 # Default variables
 $NotAvailable = 'N/A'
 $ScriptDir = Split-Path -Path $script:MyInvocation.MyCommand.Path
+$EdgeServerNote = 'If there are any Edge Servers subscribed to the Exchange organization, the Exchange version information displayed in the report does not reflect the version currently installed.<br/>The version displayed is the version as of the subscription date.'
 
 # Set TLS version o TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -170,7 +186,7 @@ function Get-DatabaseAvailabilityGroupInformation {
 
   @{Name        = $DAG.Name.ToUpper()
     MemberCount	= $DAG.Servers.Count
-    Members     = [array]($DAG.Servers | ForEach-Object { $_.Name })
+    Members     = [array]($DAG.Servers | ForEach-Object { $_.Name.ToUpper() })
     Databases   = @()
   }
 }
@@ -251,7 +267,7 @@ function Get-DatabaseInformation {
     $CopyCount = [int]$Database.Servers.Count
 
     if ($Database.MasterServerOrAvailabilityGroup.Name -ne $Database.Server.Name) {
-      $Copies = [array]($Database.Servers | ForEach-Object { $_.Name })
+      $Copies = [array]($Database.Servers | ForEach-Object { $_.Name.ToUpper() })
     }
     else {
       $Copies = @()
@@ -259,7 +275,7 @@ function Get-DatabaseInformation {
     # Archive Info
     $ArchiveMailboxCount = [int]([array]($ArchiveMailboxes | Where-Object { $_.ArchiveDatabase -eq $Database.Name })).Count
 
-    $ArchiveStatistics = [array]($ArchiveMailboxes | Where-Object { $_.ArchiveDatabase -eq $Database.Name } | Get-MailboxStatistics -Archive )
+    $ArchiveStatistics = [array]($ArchiveMailboxes | Where-Object { $_.ArchiveDatabase -eq $Database.Name } | Get-MailboxStatistics -Archive -ErrorAction SilentlyContinue )
 
     if ($ArchiveStatistics) {
       [long]$ArchiveItemSizeB = 0
@@ -448,9 +464,10 @@ function Get-ExchangeServerInformation {
         $Roles += 'ClusteredMailbox'
       }
 
-      # Get Mailbox Statistics the normal way, return in a consitent format
+      # Get Mailbox Statistics the normal way, return in a consistent format
       # 2019-05-20 TST, try/catch added
       try {
+        Write-Verbose -Message ('Fetching Mailbox Statistics - {0}' -f $ExchangeServer)
         $MailboxStatistics = Get-MailboxStatistics -Server $ExchangeServer -ErrorAction SilentlyContinue | Select-Object -Property DisplayName, @{Name = 'TotalItemSizeB'; Expression = { $_.TotalItemSize.Value.ToBytes() } }, @{Name = 'TotalDeletedItemSizeB'; Expression = { $_.TotalDeletedItemSize.Value.ToBytes() } }, Database
       }
       catch {
@@ -1018,19 +1035,33 @@ function Get-HtmlDatabaseInformationTable {
     }
 
     $Output += "<td>$($Database.Name)</td>
-      <td class='center'>$($Database.MailboxCount)</td>
-    <td class='center'>$("{0:N2}" -f ($Database.MailboxAverageSize/1MB)) MB</td>"
+      <td class='center'>$($Database.MailboxCount)</td>"
+
+    # Display average mailbox size in GB, if requested
+    if($ShowAverageMailboxSizeInGB) {
+      $Output+="<td class='center'>$("{0:N2}" -f ($Database.MailboxAverageSize/1GB)) GB</td>"
+    }
+    else {
+      $Output+="<td class='center'>$("{0:N2}" -f ($Database.MailboxAverageSize/1MB)) MB</td>"
+    }
 
     if ($ShowArchiveDBs) {
-      $Output += "<td class=""center"">$($Database.ArchiveMailboxCount)</td>
-      <td class='center'>$("{0:N2}" -f ($Database.ArchiveAverageSize/1MB)) MB</td>"
+      $Output += "<td class=""center"">$($Database.ArchiveMailboxCount)</td>"
+
+      # Display average archive mailbox size in GB, if requested
+      if($ShowAverageMailboxSizeInGB) {
+        $Output+="<td class='center'>$("{0:N2}" -f ($Database.ArchiveAverageSize/1GB)) GB</td>"
+      }
+      else {
+        $Output+="<td class='center'>$("{0:N2}" -f ($Database.ArchiveAverageSize/1MB)) MB</td>"
+      }
     }
 
     if ([double]($Database.Size / 1GB) -le $MaxDatabaseSize) {
       $Output += "<td class=""center"">$("{0:N2}" -f ($Database.Size/1GB)) GB </td>"
     }
     else {
-      $Output += "<td class=""center alert"">$("{0:N2}" -f ($Database.Size/1GB)) GB </td>"
+      $Output += "<td class=""center alert"">$("{0:N2}" -f ($Database.Size/1GB)) GB &uarr;</td>"
     }
 
     $Output += "<td class='center'>$("{0:N2} GB" -f ($Database.Whitespace/1GB))</td>"
@@ -1042,7 +1073,7 @@ function Get-HtmlDatabaseInformationTable {
         $Output += "<td class='center'>$("{0:N1}" -f $Database.FreeDatabaseDiskSpace)%</td>"
       }
       else {
-        $Output += "<td class='center alert'>$("{0:N1}" -f $Database.FreeDatabaseDiskSpace)%</td>"
+        $Output += "<td class='center alert'>$("{0:N1}" -f $Database.FreeDatabaseDiskSpace)% &darr;</td>"
       }
     }
     if ($ShowFreeLogDiskSpace) {
@@ -1050,7 +1081,7 @@ function Get-HtmlDatabaseInformationTable {
         $Output += "<td class='center'>$("{0:N1}" -f $Database.FreeLogDiskSpace)%</td>"
       }
       else {
-        $Output += "<td class='center alert'>$("{0:N1}" -f $Database.FreeLogDiskSpace)%</td>"
+        $Output += "<td class='center alert'>$("{0:N1}" -f $Database.FreeLogDiskSpace)% &darr;</td>"
       }
     }
     if ($ShowLastFullBackup) {
@@ -1074,6 +1105,13 @@ function Get-HtmlDatabaseInformationTable {
 
   $Output += '<p class="dagtablefooter">Explanation</p>'
   $Output += ("<p class='dagtablefooter'>Maximum mailbox database size: {0} GB<br/>Minimum free disk space: {1}%</p>" -f $MaxDatabaseSize, $MinFreeDiskspace)
+  $Output += ("<p class='dagtablefooter'>NOTE<br/>{0}</p>" -f $EdgeServerNote)
+
+  $StopWatch.Stop()
+
+  if($ShowRunTime) {
+    $Output += ("<p class='dagtablefooter'>Run time: {0:0}m:{1:0}s</p>" -f $s.Elapsed.TotalMinutes, (($s.Elapsed.TotalSeconds)-([math]::Round($s.Elapsed.TotalMinutes)*60)) )
+  }
 
   $Output
 }
@@ -1103,10 +1141,10 @@ function Get-HtmlReportHeader {
   }
 
   $Output += ("<h2 align=""center"">Exchange Environment Report</h2><h3 align=""center"">Organization: {3}</h3>
-      <h4 align=""center"">Generated {0}</h4>
+      <h4 align=""center"">Generated {0} - V{4}</h4>
       <table class='header'>
       <tr class='header'>
-  <th colspan=""{1}"" class='header'>{2}</th>" -f (Get-Date -Format $DateLabelFormat), $ExchangeEnvironment.TotalMailboxesByVersion.Count, $LabelTotalServers, $ExchangeEnvironment.OrganizationName)
+  <th colspan=""{1}"" class='header'>{2}</th>" -f (Get-Date -Format $DateLabelFormat), $ExchangeEnvironment.TotalMailboxesByVersion.Count, $LabelTotalServers, $ExchangeEnvironment.OrganizationName, $ScriptVersion)
 
   if ($ExchangeEnvironment.RemoteMailboxes) {
     $Output += ("<th colspan=""{0}"" class='header'>{1}</th>" -f ($ExchangeEnvironment.TotalMailboxesByVersion.Count + 2), $LabelTotalMailboxes)
@@ -1305,7 +1343,7 @@ for ($i = 1; $i -le 40; $i++) {
 }
 
 # Security Update Mapping
-# 2019-05-17 TST Security Update Mapping added
+# 2024-01-16 TST Security Update Mapping added
 $ExSUString = @{
   # Exchange 2019 CU13
   '15.2.1258.28' = 'Nov23SU'
