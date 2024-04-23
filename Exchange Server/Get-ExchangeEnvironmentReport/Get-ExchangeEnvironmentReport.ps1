@@ -22,7 +22,7 @@
     SOFTWARE
 #>
 
-# Version 2.6.0, 2024-01-16
+# Version 2.6.1, 2024-04-23
 
 <#
     .SYNOPSIS
@@ -172,7 +172,7 @@ $ScriptVersion = '2.6.0'
 # Default variables
 $NotAvailable = 'N/A'
 $ScriptDir = Split-Path -Path $script:MyInvocation.MyCommand.Path
-$EdgeServerNote = 'If there are any Edge Servers subscribed to the Exchange organization, the Exchange version information displayed in the report does not reflect the version currently installed.<br/>The version displayed is the version as of the subscription date.'
+$EdgeServerNote = 'If there are any Edge Transport Servers subscribed to the Exchange organization, the Exchange version information displayed in the report does not reflect the version currently installed.<br/>The version displayed is the version as of the subscription date.'
 
 # Set TLS version o TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -538,7 +538,8 @@ function Get-ExchangeServerInformation {
       }
     }
 
-    # Rollup Level / Versions (Thanks to Bhargav Shukla https://bhargavs.com/index.php/2009/12/14/how-do-i-check-update-rollup-version-on-exchange-20xx-server/)
+    # Rollup Level / Versions
+    # Thanks to Bhargav Shukla https://bhargavs.com/index.php/2009/12/14/how-do-i-check-update-rollup-version-on-exchange-20xx-server/
     switch ([string]$ExchangeMajorVersion) {
       # Exchange Server 2016 / 2019
       '15.2' { $RegKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\S-1-5-18\\Products\\442189DC8B9EA5040962A6BED9EC1F1F\\Patches" }
@@ -1345,7 +1346,11 @@ for ($i = 1; $i -le 40; $i++) {
 # Security Update Mapping
 # 2024-01-16 TST Security Update Mapping added
 $ExSUString = @{
+  # Exchange 2019 CU14
+  '15.2.1544.9' = 'Mar24SU'
+
   # Exchange 2019 CU13
+  '15.2.1258.32' = 'Mar24SU'
   '15.2.1258.28' = 'Nov23SU'
   '15.2.1258.27' = 'Oct23SU'
   '15.2.1258.25' = 'Aug23SUv2'
@@ -1367,6 +1372,7 @@ $ExSUString = @{
   '15.2.1118.9'  = 'Mar22SU'
 
   # Exchange 2016 CU23
+  '15.1.2507.37' = 'Mar24SU'
   '15.1.2507.35' = 'Nov23SU'
   '15.1.2507.34' = 'Oct23SU'
   '15.1.2507.32' = 'Aug23SUv2'
