@@ -14,8 +14,28 @@
 
 ## Examples
 
-``` PowerShell
+### Example 1
 
+Checks all servers in the organization and outputs the results to the shell window.
+
+``` PowerShell
+.\Test-ExchangeServerHealth.ps1 -Server HO-EX2010-MB1
+```
+
+### Example 2
+
+Checks the server HO-EX2010-MB1 and outputs the results to the shell window.
+
+``` PowerShell
+.\Test-ExchangeServerHealth.ps1 -Server HO-EX2010-MB1
+```
+
+### Example 3
+
+Checks all servers in the organization, outputs the results to the shell window, a HTML report, and emails the HTML report to the address configured in the script.
+
+``` PowerShell
+.\Test-ExchangeServerHealth.ps1 -ReportMode -SendEmail
 ```
 
 ## Note
