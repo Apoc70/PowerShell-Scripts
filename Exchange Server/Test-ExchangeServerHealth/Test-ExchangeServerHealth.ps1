@@ -1,8 +1,10 @@
 ﻿<#
 .SYNOPSIS
+
 Test-ExchangeServerHealth.ps1 - Exchange Server Health Check Script.
 
 .DESCRIPTION
+
 Performs a series of health checks on Exchange servers and DAGs
 and outputs the results to screen, and optionally to log file, HTML report,
 and HTML email.
@@ -33,14 +35,17 @@ Writes a log file to help with troubleshooting.
 
 .EXAMPLE
 .\Test-ExchangeServerHealth.ps1
+
 Checks all servers in the organization and outputs the results to the shell window.
 
 .EXAMPLE
 .\Test-ExchangeServerHealth.ps1 -Server HO-EX2010-MB1
+
 Checks the server HO-EX2010-MB1 and outputs the results to the shell window.
 
 .EXAMPLE
 .\Test-ExchangeServerHealth.ps1 -ReportMode -SendEmail
+
 Checks all servers in the organization, outputs the results to the shell window, a HTML report, and
 emails the HTML report to the address configured in the script.
 
@@ -48,6 +53,7 @@ emails the HTML report to the address configured in the script.
 https://practical365.com/exchange-server/powershell-script-exchange-server-health-check-report/
 
 .NOTES
+
 Updated for Exchange Server 2019: Thomas Stensitzki, Christian Langen
 
 Copyright (c) 2024
@@ -142,17 +148,20 @@ param (
 $now = Get-Date                                             #Used for timestamps
 $date = $now.ToShortDateString()                            #Short date format for email message subject
 
-$ReportTitle = 'Report-Exchange-2019 Server-Health'
+# Email settings
+$ReportTitle = ('Report-Exchange-2019 Server-Health {0}' -f $date)
 $ReportRecipient = 'admin@varunagroup.de'
 $ReportSender = 'admin@varunagroup.de'
 $ReportSmtpHost = 'smtp.varunagroup.de'
 
+# Array for the Exchange server or servers to check
 [array]$ExchangeServers = @()   # Array for the Exchange server or servers to check
 [int]$TransportQueueHigh = 100  # Change this to set transport queue high threshold. Must be higher than warning threshold.
 [int]$TransportQueueWarn = 80   # Change this to set transport queue warning threshold. Must be lower than high threshold.
 
 # Timeout for each MAPI connectivity test, in seconds - Adjust as needed in your environment
 $MapiTimeout = 10
+
 # Threshold to consider a replication queue unhealthy
 [int]$ReplQueueWarning = 20 # default = 8 changed by CL on 03/04/2023
 
@@ -161,11 +170,12 @@ $warn = "Yellow"
 $fail = "Red"
 $ip = $null
 
+# Arrays for the server health check
 [array]$ServerSummary = @()     # Summary of issues found during server health checks
 [array]$DagSummary = @()        # Summary of issues found during DAG health checks
 [array]$Report = @()
 [bool]$Alerts = $false
-[array]$Dags= @()              # Array for DAG health check
+[array]$Dags = @()              # Array for DAG health check
 [array]$DagDatabases = @()      # Array for DAG databases
 $dagreportbody = $null
 
@@ -194,8 +204,7 @@ $smtpSettings = @{
 }
 
 #...................................
-# Modify these language
-# localization strings.
+# Modify these language localization strings.
 #...................................
 
 # The server roles must match the role names you see when you run Test-ServiceHealth.
@@ -212,7 +221,7 @@ $success = "Success"
 #...................................
 
 $logstring0 = "====================================="
-$logstring1 = " Exchange Server Health Check"
+$logstring1 = (" Exchange Server Health Check {0}" -f $date)
 
 #...................................
 # Initialization Strings
@@ -761,14 +770,18 @@ foreach ($Server in $ExchangeServers) {
 
                 Switch ($UpTime -gt 23) {
                     $true { Write-Host -ForegroundColor $pass $UpTime }
-                    $false { Write-Host -ForegroundColor $warn $UpTime
-                        $ServerSummary += ('{0} - Uptime is less than 24 hours' -f $Server.ToUpper() ) }
-                    default { Write-Host -ForegroundColor $warn $UpTime
-                        $ServerSummary += ('{0} - Uptime is less than 24 hours' -f $Server.ToUpper() ) }
+                    $false {
+                        Write-Host -ForegroundColor $warn $UpTime
+                        $ServerSummary += ('{0} - Uptime is less than 24 hours' -f $Server.ToUpper() )
+                    }
+                    default {
+                        Write-Host -ForegroundColor $warn $UpTime
+                        $ServerSummary += ('{0} - Uptime is less than 24 hours' -f $Server.ToUpper() )
+                    }
                 }
             }
 
-            if ($Log) { Write-Logfile -LogEntry ('Uptime is {0} hours' -f $UpTime)}
+            if ($Log) { Write-Logfile -LogEntry ('Uptime is {0} hours' -f $UpTime) }
 
             $serverObj | Add-Member NoteProperty -Name "Uptime (hrs)" -Value $UpTime -Force
 
@@ -1173,7 +1186,7 @@ if (!($NoDAG)) {
     # Remove DAGs in ignorelist
     foreach ($tmpDag in $tmpDags) {
         if (!($IgnoreList -icontains $tmpDag.name)) {
-            $Dags+= $tmpDag
+            $Dags += $tmpDag
         }
     }
 

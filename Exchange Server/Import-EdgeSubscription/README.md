@@ -18,7 +18,6 @@ The full path to the Edge Subscription file.
 
 The name of the Active Directory site for subscribign the Edge Transport Server to.
 
-
 ## Example
 
 ``` PowerShell
@@ -38,7 +37,7 @@ Written by: Thomas Stensitzki
 - YouTube: [https://www.youtube.com/@ThomasStensitzki](https://www.youtube.com/@ThomasStensitzki)
 - LinkTree: [https://linktr.ee/stensitzki](https://linktr.ee/stensitzki)
 
-For more Microsoft 365, Cloud Security, and Exchange Server stuff checkout services provided by Granikos
+For more Office 365, Cloud Security, and Exchange Server stuff checkout services provided by Granikos
 
-- Website: [https://www.granikos.eu/en/](https://www.granikos.eu/en/)
+- Website: [https://granikos.eu](https://www.granikos)
 - Bluesky: [https://bsky.app/profile/granikos.bsky.social](https://bsky.app/profile/granikos.bsky.social)

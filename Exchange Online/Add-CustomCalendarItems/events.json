@@ -1,0 +1,44 @@
+[
+    {
+        "subject": "Betriebsruhe",
+        "location": "Betriebsruhe",
+        "start": {
+                "dateTime" : "2024-10-04T00:00:00",
+                "timeZone" : "W. Europe Standard Time"
+        },
+        "end": {
+            "dateTime" : "2024-10-05T00:00:00",
+            "timeZone" : "W. Europe Standard Time"
+        },
+        "isAllDay": true,
+        "isreminderOn": false
+    },
+    {
+        "subject": "Betriebsruhe",
+        "location": "Betriebsruhe",
+        "start": {
+                "dateTime" : "2024-11-01T00:00:00",
+                "timeZone" : "W. Europe Standard Time"
+        },
+        "end": {
+            "dateTime" : "2024-11-02T00:00:00",
+            "timeZone" : "W. Europe Standard Time"
+        },
+        "isAllDay": true,
+        "isreminderOn": false
+    },
+    {
+        "subject": "Betriebsruhe",
+        "location": "Betriebsruhe",
+        "start": {
+                "dateTime" : "2024-12-24T00:00:00",
+                "timeZone" : "W. Europe Standard Time"
+        },
+        "end": {
+            "dateTime" : "2025-01-01T00:00:00",
+            "timeZone" : "W. Europe Standard Time"
+        },
+        "isAllDay": true,
+        "isreminderOn": false
+    }
+]

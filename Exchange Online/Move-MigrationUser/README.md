@@ -64,17 +64,15 @@ Move two migration users from the their current migration  batch to a new migrat
 THIS CODE IS MADE AVAILABLE AS IS, WITHOUT WARRANTY OF ANY KIND. THE ENTIRE
 RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS CODE REMAINS WITH THE USER.
 
-## Stay connected
+### Stay connected
 
-- Blog: [https://blog.granikos.eu](https://blog.granikos.eu)
-- Twitter: [https://twitter.com/stensitzki](https://twitter.com/stensitzki)
-- LinkedIn: [http://de.linkedin.com/in/thomasstensitzki](http://de.linkedin.com/in/thomasstensitzki)
-- Github: [https://github.com/Apoc70](https://github.com/Apoc70)
-- MVP Blog: [https://blogs.msmvps.com/thomastechtalk/](https://blogs.msmvps.com/thomastechtalk/)
-- Tech Talk YouTube Channel (DE): [http://techtalk.granikos.eu](http://techtalk.granikos.eu)
-- Tech & Community Podcast (DE): [http://podcast.granikos.eu](http://podcast.granikos.eu)
+- My Blog: [https://blog.granikos.eu](https://blog.granikos.eu)
+- Bluesky: [https://bsky.app/profile/stensitzki.bsky.social](https://bsky.app/profile/stensitzki.bsky.social)
+- LinkedIn: [https://www.linkedin.com/in/thomasstensitzki](https://www.linkedin.com/in/thomasstensitzki)
+- YouTube: [https://www.youtube.com/@ThomasStensitzki](https://www.youtube.com/@ThomasStensitzki)
+- LinkTree: [https://linktr.ee/stensitzki](https://linktr.ee/stensitzki)
 
-For more Microsoft 365, Cloud Security, and Exchange Server stuff checkout the services provided by Granikos
+For more Office 365, Cloud Security, and Exchange Server stuff checkout services provided by Granikos
 
-- Website: [https://granikos.eu](https://granikos.eu)
-- Twitter: [https://twitter.com/granikos_de](https://twitter.com/granikos_de)
+- Website: [https://granikos.eu](https://www.granikos)
+- Bluesky: [https://bsky.app/profile/granikos.bsky.social](https://bsky.app/profile/granikos.bsky.social)

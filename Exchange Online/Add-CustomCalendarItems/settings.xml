@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<Settings>
+	<TenantId>TenantId</TenantId>
+	<ClientId>ClientId</ClientId>
+	<ClientSecret>ClientSecret</ClientSecret>
+	<SecurityGroupId>SecurityGroupObjectId</SecurityGroupId>
+</Settings>

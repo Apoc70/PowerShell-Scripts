@@ -14,5 +14,5 @@ Please refer to the table of content in the main [README](https://github.com/Apo
 
 For more Office 365, Cloud Security, and Exchange Server stuff checkout services provided by Granikos
 
-- Website: [https://www.granikos.eu/en/](https://www.granikos.eu/en/)
+- Website: [https://granikos.eu](https://www.granikos)
 - Bluesky: [https://bsky.app/profile/granikos.bsky.social](https://bsky.app/profile/granikos.bsky.social)

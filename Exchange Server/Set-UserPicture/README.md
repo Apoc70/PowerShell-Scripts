@@ -117,7 +117,7 @@ RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS CODE REMAINS WITH THE USER.
 
 Written by: Thomas Stensitzki
 
-## Stay connected
+### Stay connected
 
 - My Blog: [https://blog.granikos.eu](https://blog.granikos.eu)
 - Bluesky: [https://bsky.app/profile/stensitzki.bsky.social](https://bsky.app/profile/stensitzki.bsky.social)
@@ -127,5 +127,5 @@ Written by: Thomas Stensitzki
 
 For more Office 365, Cloud Security, and Exchange Server stuff checkout services provided by Granikos
 
-- Website: [https://www.granikos.eu](https://www.granikos.eu)
+- Website: [https://granikos.eu](https://www.granikos)
 - Bluesky: [https://bsky.app/profile/granikos.bsky.social](https://bsky.app/profile/granikos.bsky.social)
