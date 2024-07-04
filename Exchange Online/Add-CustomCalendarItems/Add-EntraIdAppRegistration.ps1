@@ -22,7 +22,7 @@
 param(
     [string]$AppName = 'CustomCalendarItems-Application',
     [string]$AppSecretName = 'AppClientSecret',
-    [string]$AppOwnerEmailAddress = 'Admin@egxde.onmicrosoft.com'
+    [string]$AppOwnerEmailAddress = 'Admin@TENANT.onmicrosoft.com'
 )
 
 if ($null -ne (Get-Module -Name Microsoft.Graph.Authentication -ListAvailable).Version) {
@@ -120,8 +120,10 @@ $params = @{
 $null = Update-MgApplication -ApplicationId $appObjectId -IsFallbackPublicClient -PublicClient $params
 
 # Open browser to grant admin consent
-$tenantId = $newApp.PublisherDomain
-$URL = "https://login.microsoftonline.com/$tenantId/adminconsent?client_id=$appObjectId"
+$URL = ('https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/CallAnAPI/appId/{0}' -f $newApp.AppId)
 
-# Open the browser
-# Start-Process $URL
+# Open the browser to grant admin consent
+# Wait for 30 seconds to allow Entra ID to provision the application
+Write-Host 'Browser will open in 30 seconds.'
+Start-Sleep -Seconds 30
+Start-Process $URL
