@@ -22,7 +22,7 @@
     SOFTWARE
 #>
 
-# Version 2.6.1, 2024-04-23
+# Version 2.7, 2024-07-16
 
 <#
     .SYNOPSIS
@@ -119,6 +119,9 @@
     .PARAMETER ShowAverageMailboxSizeInGB
     List average mailbox and archive mailbox size in GB instead of MB
 
+    .PARAMETER ShowDisconnectedMailboxCount
+    Show the number of disconnected mailboxes in the database report table
+
     .PARAMETER CssFileName
     The filename containing the Cascading Style Sheet (CSS) information fpr the HTML report
     Default: EnvironmentReport.css
@@ -156,6 +159,7 @@ param(
   [switch]$ShowDriveNames,
   [switch]$ShowAverageMailboxSizeInGB,
   [switch]$ShowRunTime,
+  [switch]$ShowDisconnectedMailboxCount,
   [string]$CssFileName = 'EnvironmentReport.css'
 )
 
@@ -167,7 +171,7 @@ $MinFreeDiskspace = 30 # Mark free space less than this value (%) in red
 $MaxDatabaseSize = 250 # Mark database larger than this value (GB) in red
 
 # Version
-$ScriptVersion = '2.6.0'
+$ScriptVersion = '2.7'
 
 # Default variables
 $NotAvailable = 'N/A'
@@ -286,6 +290,9 @@ function Get-DatabaseInformation {
       $ArchiveAverageSize = 0
     }
 
+    # Disconnected Mailbox, v2.7
+    $DisconnectedMailboxCount = ( (Get-MailboxStatistics -Database $Database.Name | where {$_.DisconnectReason -eq 'SoftDeleted'}) | Measure-Object).Count
+
     # DB Size / Whitespace Info
     [long]$Size = $Database.DatabaseSize.ToBytes()
     [long]$Whitespace = $Database.AvailableNewMailboxSpace.ToBytes()
@@ -326,6 +333,7 @@ function Get-DatabaseInformation {
     MailboxAverageSize     = $MailboxAverageSize
     ArchiveMailboxCount    = $ArchiveMailboxCount
     ArchiveAverageSize     = $ArchiveAverageSize
+    DisconnectedMailboxCount = $DisconnectedMailboxCount
     CircularLoggingEnabled = $CircularLoggingEnabled
     LastFullBackup         = $LastFullBackup
     Size                   = $Size
@@ -991,6 +999,9 @@ function Get-HtmlDatabaseInformationTable {
 
   $Output += '<th>DB Size</th><th>DB Whitespace</th>'
 
+  if ($ShowDisconnectedMailboxCount) {
+    $Output += '<th>Disconnected Mailboxes</th>'
+  }
   if ($ShowFreeDatabaseSpace) {
     $Output += '<th>Database Disk Free</th>'
   }
@@ -1066,6 +1077,11 @@ function Get-HtmlDatabaseInformationTable {
     }
 
     $Output += "<td class='center'>$("{0:N2} GB" -f ($Database.Whitespace/1GB))</td>"
+
+    # v2.7
+    if($ShowDisconnectedMailboxCount) {
+      $Output += "<td class='center'>$($Database.DisconnectedMailboxCount)</td>"
+    }
 
     # $Output+="<td align=""center"">$("{0:N2}" -f ($Database.Size/1GB)) GB </td><td class='center'>$("{0:N2}" -f ($Database.Whitespace/1GB)) GB</td>"
 
@@ -1589,7 +1605,7 @@ $Output | Out-File -FilePath $HtmlReportFullPath -Force -Encoding utf8
 
 
 if ($SendMail) {
-  Show-ProgressBar -PercentComplete 95 -Status 'Sending mail message..' -Stage 4
+  Show-ProgressBar -PercentComplete 95 -Status 'Sending mail message...' -Stage 4
 
   # 2019-05-17 TST, Changed to .NET send method to work as scheduled job
 
