@@ -70,6 +70,7 @@ The PowerShell script does not gather information on public folders or analyzes 
   * Exchange organization name added to report header
 * 2.4 : Bug fix for empty ExternalUrl parameter values
 * 2.5 : Issue #6 fixed - CSS file check added
+* 2.7 : ShowDisconnectedMailboxCount added
 
 ## Example Report
 
@@ -109,6 +110,10 @@ Note the use of the wildcard (*) character to allow for multiple matches.
 ### ShowDriveNames
 
 Include drive names of EDB file path and LOG file folder in database report table
+
+### ShowDisconnectedMailboxCount
+
+Show the number of disconnected mailboxes in the database report table
 
 ### CssFileName
 

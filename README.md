@@ -18,29 +18,38 @@ Scripts for Exchange 2013, 2016, and 2019
 
   Copy a selected receive connector and it's configuration and permissions to other Exchange Servers
 
-- [Get-ExchangeEnvironmentReport.ps1](/Exchange%20Server/Get-ExchangeEnvironmentReport)
-
-  Creates an HTML report describing the On-Premises Exchange environment.
-
 - [Export-MessageQueue.ps1](/Exchange%20Server/Export-MessageQueue)
 
   Export messages from a transport queue to file system for manual replay
+
+- [Get-ExchangeEnvironmentReport.ps1](/Exchange%20Server/Get-ExchangeEnvironmentReport)
+
+  Creates an HTML report describing the On-Premises Exchange environment.
 
 - [Get-RemoteSmtpServers.ps1](/Exchange%20Server/Get-RemoteSmtpServers)
 
   Fetch all remote SMTP servers from Exchange receive connector logs
 
-- [Start-MailboxImport.ps1](/Exchange%20Server/Start-MailboxImport)
+- [Import-EdgeSubscription.ps1](/Exchange%20Server/Import-EdgeSubscription)
 
-  Import one or more pst files into an exisiting mailbox or a archive
+  Little helper script when working with Edge Transport Server subscriptions
+
+- [New-RoomMailbox.ps1](/Exchange%20Server/New-RoomMailbox)
+
+  This scripts creates a new room mailbox and security groups for full access and and send-as delegation. As a third security group a dedicated group for allowed users to book the new room is created. The CalenderBooking security group is only created, but not assigned to the room mailbox. Security groups are created using a naming convention.
 
 - [New-TeamMailbox.ps1](/Exchange%20Server/New-TeamMailbox)
 
   Creates a new shared mailbox, security groups for full access and send-as permission and adds the security groups to the shared mailbox configuration.
 
-- [New-RoomMailbox.ps1](/Exchange%20Server/New-RoomMailbox)
+- [Purge-LogFiles.ps1](/Exchange%20Server/Purge-LogFiles)
 
-  This scripts creates a new room mailbox and security groups for full access and and send-as delegation. As a third security group a dedicated group for allowed users to book the new room is created. The CalenderBooking security group is only created, but not assigned to the room mailbox. Security groups are created using a naming convention.
+  PowerShell script for modern Exchange Server environments to clean up Exchange Server and IIS log files
+
+- [Start-MailboxImport.ps1](/Exchange%20Server/Start-MailboxImport)
+
+  Import one or more pst files into an exisiting mailbox or a archive
+
 
 ## Legacy Exchange Server
 
