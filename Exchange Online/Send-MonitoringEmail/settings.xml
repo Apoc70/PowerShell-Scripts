@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<Settings>
+	<!-- The tenant Id of the registered application -->
+	<TenantId>TenantId</TenantId>
+	<!-- The client Id of the registered application -->
+	<ClientId>ClientId</ClientId>
+	<!-- The client secret of the registered application -->
+	<ClientSecret>ClientSecret</ClientSecret>
+	<!-- The email address of the sender -->
+	<SenderEmailAddress>user@yourdomain.com</SenderEmailAddress>
+	<!-- The email address of the recipient -->
+	<RecipientEmailAddress>recipient@somedomain.com</RecipientEmailAddress>
+	<!-- The subject of the email -->
+	<MessageSubject>Monitoring Email</MessageSubject>
+	<!-- The type of the message HTML or Text -->
+	<MessageType>Text</MessageType>
+	<!-- The name of the attachment. Leave empty when attachment is not required -->
+	<AttachmentFilename>Monitoring Attachment.pdf</AttachmentFilename>
+	<!-- Save the email in the sent items folder -->
+	<SaveToSentItems>false</SaveToSentItems>
+</Settings>
