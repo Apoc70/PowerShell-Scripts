@@ -1,14 +1,18 @@
 # Add-CustomCalendarItems.ps1
 
-Add calendar items to the default calendar of users in a security group
+Send a single monitoring email to a recipient
 
 ## Description
 
-The script reads a JSON file with event data and creates calendar items in the default calendar of users in a security group.
+This script send a single monitoring email to a recipient. The script is intended to be used as a monitoring script.
+The message body contains a GUID and the current date and time in ticks.
 
 Use the Add-EntraIdAppRegistration.ps1 script to create a custom application registration in Entra ID.
 
 Adjust the settings in the Settings.xml file to match your environment.
+
+When using application permissions for Microsoft Grapg, consider restricting access to the application to specific users or groups:
+[https://bit.ly/LimitExoAppAccess](https://bit.ly/LimitExoAppAccess)
 
 ## Requirements
 
@@ -18,10 +22,6 @@ Adjust the settings in the Settings.xml file to match your environment.
 
 ## Parameters
 
-### EventFileName
-
-The name of the JSON file containing the event data located in the script directory.
-
 ### SettingsFileName
 
 The file name of the settings file located in the script directory.
@@ -29,10 +29,10 @@ The file name of the settings file located in the script directory.
 ## Example
 
 ``` PowerShell
-.\Add-CustomCalendarItems.ps1 -EventFileName CustomEvents.json -SettingsFileName CustomSettings.xml
+.\Add-CustomCalendarItems.ps1 -SettingsFileName CustomSettings.xml
 ```
 
-Create calendar items for users based on the JSON file CustomEvents.json and the settings file CustomSettings.xml
+Send a monitoring email using the selected settings file
 
 ## Note
 
