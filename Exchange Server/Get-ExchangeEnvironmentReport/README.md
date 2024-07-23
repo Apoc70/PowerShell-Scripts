@@ -115,6 +115,10 @@ Include drive names of EDB file path and LOG file folder in database report tabl
 
 Show the number of disconnected mailboxes in the database report table
 
+### ShowProvisioningStatus
+
+Show IsExludedFromProvisioning or IsExcludedFromProvisioningByOperator status in the report
+
 ### CssFileName
 
 The filename containing the Cascading Style Sheet (CSS) information fpr the HTML report

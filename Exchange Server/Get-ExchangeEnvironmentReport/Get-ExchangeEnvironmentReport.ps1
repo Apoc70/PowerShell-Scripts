@@ -22,7 +22,7 @@
     SOFTWARE
 #>
 
-# Version 2.7, 2024-07-16
+# Version 2.7.1, 2024-07-16
 
 <#
     .SYNOPSIS
@@ -119,11 +119,17 @@
     .PARAMETER ShowAverageMailboxSizeInGB
     List average mailbox and archive mailbox size in GB instead of MB
 
+    .PARAMETER ShowRunTime
+    Show script running time in HTML report
+
     .PARAMETER ShowDisconnectedMailboxCount
-    Show the number of disconnected mailboxes in the database report table
+    Show the number of disconnected (soft-deleted) mailboxes per database
+
+    .PARAMETER ShowProvisioningStatus
+    Show IsExludedFromProvisioning or IsExcludedFromProvisioningByOperator status in the report
 
     .PARAMETER CssFileName
-    The filename containing the Cascading Style Sheet (CSS) information fpr the HTML report
+    The filename containing the Cascading Style Sheet (CSS) information for the HTML report
     Default: EnvironmentReport.css
 
     .EXAMPLE
@@ -160,6 +166,7 @@ param(
   [switch]$ShowAverageMailboxSizeInGB,
   [switch]$ShowRunTime,
   [switch]$ShowDisconnectedMailboxCount,
+  [switch]$ShowProvisioningStatus,
   [string]$CssFileName = 'EnvironmentReport.css'
 )
 
@@ -171,7 +178,7 @@ $MinFreeDiskspace = 30 # Mark free space less than this value (%) in red
 $MaxDatabaseSize = 250 # Mark database larger than this value (GB) in red
 
 # Version
-$ScriptVersion = '2.7'
+$ScriptVersion = '2.7.1'
 
 # Default variables
 $NotAvailable = 'N/A'
@@ -293,6 +300,11 @@ function Get-DatabaseInformation {
     # Disconnected Mailbox, v2.7
     $DisconnectedMailboxCount = ( (Get-MailboxStatistics -Database $Database.Name | where {$_.DisconnectReason -eq 'SoftDeleted'}) | Measure-Object).Count
 
+    # Database Provisioning Status, v.2.7.1
+    $IsExcludedFromProvisioning = $Database.IsExcludedFromProvisioning
+    $IsExcludedFromProvisioningByOperator = $Database.IsExcludedFromProvisioningByOperator
+    $IsExcludedFromProvisioningReason = $Database.IsExcludedFromProvisioningReason
+
     # DB Size / Whitespace Info
     [long]$Size = $Database.DatabaseSize.ToBytes()
     [long]$Whitespace = $Database.AvailableNewMailboxSpace.ToBytes()
@@ -344,6 +356,10 @@ function Get-DatabaseInformation {
     FreeDatabaseDiskSpace  = $FreeDatabaseDiskSpace
     DriveNameEdb           = $DriveNameEdb
     DriveNameLog           = $DriveNameLog
+    IsExcludedFromProvisioning = $IsExcludedFromProvisioning
+    IsExcludedFromProvisioningByOperator = $IsExcludedFromProvisioningByOperator
+    IsExcludedFromProvisioningReason = $IsExcludedFromProvisioningReason
+
   }
 }
 
@@ -1018,6 +1034,11 @@ function Get-HtmlDatabaseInformationTable {
     $Output += '<th>DB Copies (n)</th>'
   }
 
+  # Provisioning Status, v2.7.1
+  if($ShowProvisioningStatus) {
+    $Output += '<th>Privisioning Status</th>'
+  }
+
   # Drive names, issue #4
   if ($ShowDriveNames) {
     $Output += '<th>EDB / LOG</th>'
@@ -1109,6 +1130,31 @@ function Get-HtmlDatabaseInformationTable {
     }
     if ($ShowCopies) {
       $Output += "<td>$($Database.Copies | ForEach-Object{$_}) ($($Database.CopyCount))</td>"
+    }
+
+    # Database Provisioning Status
+    if($ShowProvisioningStatus) {
+      $ProvisioningStatus = @()
+      if($Database.IsExcludedFromProvisioning) {
+        $ProvisioningStatus += 'IsExcluded'
+      }
+      if($Database.IsExcludedFromProvisioningByOperator) {
+        $ProvisioningStatus += 'IsExludedByOperator'
+      }
+
+      if(-not ([string]::IsNullOrEmpty($Database.IsExcludedFromProvisioningReason) ) ) {
+        $ProvisioningReason = ('Reason: {0}' -f $Database.IsExcludedFromProvisioningReason)
+      }
+      else {
+        $ProvisioningReason = ''
+      }
+
+      if($Database.IsExcludedFromProvisioning -or $Database.IsExcludedFromProvisioningByOperator) {
+        $Output += "<td class='center'>$("{0}<br/>{1}" -f ($ProvisioningStatus -Join ', ') , $ProvisioningReason)</td>"
+      }
+      else {
+        $Output += "<td>&nbsp;</td>"
+      }
     }
 
     # Drive names, issue #4
@@ -1363,6 +1409,7 @@ for ($i = 1; $i -le 40; $i++) {
 # 2024-01-16 TST Security Update Mapping added
 $ExSUString = @{
   # Exchange 2019 CU14
+  '15.2.1544.11' = 'Apr24HU'
   '15.2.1544.9' = 'Mar24SU'
 
   # Exchange 2019 CU13
