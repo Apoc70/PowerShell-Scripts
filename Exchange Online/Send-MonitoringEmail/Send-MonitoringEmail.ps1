@@ -7,7 +7,7 @@
     THIS CODE IS MADE AVAILABLE AS IS, WITHOUT WARRANTY OF ANY KIND. THE ENTIRE
     RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS CODE REMAINS WITH THE USER.
 
-    Version 1.1, 2024-07-24
+    Version 1.2, 2024-07-24
 
     Please post ideas, comments, and suggestions at GitHub.
 
@@ -30,6 +30,7 @@
     --------------------------------------------------------------------------------
     1.0      Initial community release
     1.1      Added support for certificate authentication
+    1.2      Logging added
 
     .PARAMETER SettingsFileName
     The file name of the settings file located in the script directory.
@@ -120,15 +121,19 @@ $ClientSecretCredential = New-Object -TypeName System.Management.Automation.PSCr
 if($UseCertificate) {
     # Connect to Microsoft Graph using certificate
     Connect-MgGraph -TenantId $tenantId -ClientId $clientId -CertificateThumbprint $certificateThumbprint -NoWelcome
+    $logger.Write('Connected to MS Graph using certificate')
 }
 else {
     # Connect to Microsoft Graph using client secret
     Connect-MgGraph -TenantId $tenantId -ClientSecretCredential $ClientSecretCredential -NoWelcome
+    $logger.Write('Connected to MS Graph using client secret')
 }
 
 # Load the attachment content
 if ($attachmentFilename -ne '') {
     Write-Verbose -Message ('Loading attachment content "{0}"' -f $attachmentFilename)
+    $logger.Write( ('Loading attachment content "{0}"' -f $attachmentFilename) )
+
     $attachmentPath = Join-Path -Path $ScriptDir -ChildPath $attachmentFilename
     $attachmentBase64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($attachmentPath))
     $attachmentName = (Get-Item -Path $attachmentPath).Name
@@ -202,7 +207,11 @@ else {
 
 # Send the monitoring email
 Write-Verbose -Message ('Sending monitoring email to {0}' -f $recipientEmailAddress)
+
+# Send the email
 Send-MgUserMail -UserId $senderEmailAddress -BodyParameter $params
+
+$logger.Write( ('Monitoring email sent to {0}' -f $recipientEmailAddress) )
 Write-Output 'Message sent.'
 
 # Disconnect from Microsoft Graph
