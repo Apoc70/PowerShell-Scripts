@@ -7,7 +7,7 @@
     THIS CODE IS MADE AVAILABLE AS IS, WITHOUT WARRANTY OF ANY KIND. THE ENTIRE
     RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS CODE REMAINS WITH THE USER.
 
-    Version 1.0, 2024-07-22
+    Version 1.1, 2024-07-24
 
     Please post ideas, comments, and suggestions at GitHub.
 
@@ -28,19 +28,31 @@
 
     Revision History
     --------------------------------------------------------------------------------
-    1.0     Initial community release
+    1.0      Initial community release
+    1.1      Added support for certificate authentication
 
     .PARAMETER SettingsFileName
     The file name of the settings file located in the script directory.
 
-    .EXAMPLE
-    Create calendar items for users based on the JSON file CustomEvents.json and the settings file CustomSettings.xml
+    .PARAMETER UseCertificate
+    Use a certificate for authentication. Default is to use a client secret.
+    Certificate authentication requires the certificate to be installed in the local machine certificate store of the user running the script.
 
-    .\Add-CustomCalendarItems.ps1 -EventFileName CustomEvents.json SettingsFileName CustomSettings.xml
+    .EXAMPLE
+    Send a montoring email using settings file CustomSettings.xml and the configured client secret.
+
+    .\Send-MonitoringEmail.ps1 -SettingsFileName CustomSettings.xml
+
+    .EXAMPLE
+    Send a montoring email using settings file CustomSettings.xml and a certificate for authentication.
+
+    .\Send-MonitoringEmail.ps1 -SettingsFileName CustomSettings.xml -UseCertificate
+
 #>
 [CmdletBinding()]
 param(
-    [string]$SettingsFileName = 'Settings.xml'
+    [string]$SettingsFileName = 'Settings.xml',
+    [switch]$UseCertificate
 )
 
 # Some general variables
@@ -79,6 +91,7 @@ if (Test-Path -Path (Join-Path -Path $ScriptDir -ChildPath $SettingsFileName) ) 
     $tenantId = $Config.Settings.TenantId
     $clientId = $Config.Settings.ClientId
     $clientSecret = $Config.Settings.ClientSecret
+    $certificateThumbprint = $Config.Settings.CertificateThumbprint
     $senderEmailAddress = $Config.Settings.SenderEmailAddress
     $recipientEmailAddress = $Config.Settings.RecipientEmailAddress
     $messageSubject = $Config.Settings.MessageSubject
@@ -104,7 +117,14 @@ $ClientSecretPass = ConvertTo-SecureString -String $ClientSecret -AsPlainText -F
 $ClientSecretCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ClientId, $ClientSecretPass
 
 # Connect to Microsoft Graph
-Connect-MgGraph -TenantId $tenantId -ClientSecretCredential $ClientSecretCredential -NoWelcome
+if($UseCertificate) {
+    # Connect to Microsoft Graph using certificate
+    Connect-MgGraph -TenantId $tenantId -ClientId $clientId -CertificateThumbprint $certificateThumbprint -NoWelcome
+}
+else {
+    # Connect to Microsoft Graph using client secret
+    Connect-MgGraph -TenantId $tenantId -ClientSecretCredential $ClientSecretCredential -NoWelcome
+}
 
 # Load the attachment content
 if ($attachmentFilename -ne '') {
@@ -183,6 +203,7 @@ else {
 # Send the monitoring email
 Write-Verbose -Message ('Sending monitoring email to {0}' -f $recipientEmailAddress)
 Send-MgUserMail -UserId $senderEmailAddress -BodyParameter $params
+Write-Output 'Message sent.'
 
 # Disconnect from Microsoft Graph
 $null = Disconnect-MgGraph

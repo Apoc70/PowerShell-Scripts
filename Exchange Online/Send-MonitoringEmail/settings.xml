@@ -6,6 +6,8 @@
 	<ClientId>ClientId</ClientId>
 	<!-- The client secret of the registered application -->
 	<ClientSecret>ClientSecret</ClientSecret>
+	<!-- The certificate thumbprint for the registered application -->
+	<CertificateThumbprint></CertificateThumbprint>
 	<!-- The email address of the sender -->
 	<SenderEmailAddress>user@yourdomain.com</SenderEmailAddress>
 	<!-- The email address of the recipient -->
