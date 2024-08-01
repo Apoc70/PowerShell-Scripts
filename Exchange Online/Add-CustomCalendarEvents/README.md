@@ -10,6 +10,20 @@ Use the Add-EntraIdAppRegistration.ps1 script to create a custom application reg
 
 Adjust the settings in the Settings.xml file to match your environment.
 
+### Screenshots
+
+#### PowerShell
+
+Simple to run PowerShell
+
+![PowerShell Example](https://github.com/Apoc70/PowerShell-Scripts/blob/main/README-IMAGES/Add-CustomCalendarEvents-PowerShell.png)
+
+#### Calendar
+
+This screenshot shows the result for a single event in Outlook on the Web
+
+![Result in OWA calendar](https://github.com/Apoc70/PowerShell-Scripts/blob/main/README-IMAGES/Add-CustomCalendarEvents-PowerShell.png)
+
 ## Requirements
 
 - PowerShell 7.1+
