@@ -22,7 +22,7 @@ Simple to run PowerShell
 
 This screenshot shows the result for a single event in Outlook on the Web
 
-![Result in OWA calendar](https://github.com/Apoc70/PowerShell-Scripts/blob/main/README-IMAGES/Add-CustomCalendarEvents-PowerShell.png)
+![Result in OWA calendar](https://github.com/Apoc70/PowerShell-Scripts/blob/main/README-IMAGES/Add-CustomCalendarEvents-OWA.png)
 
 ## Requirements
 
