@@ -90,26 +90,6 @@ else {
 $logger = New-Logger -ScriptRoot $ScriptDir -ScriptName $ScriptName -LogFileRetention 14
 $logger.Write('Script started')
 
-#Connect to GRAPH API
-<#
-$tokenBody = @{
-    Grant_Type    = "client_credentials"
-    Scope         = "https://graph.microsoft.com/.default"
-    Client_Id     = $clientId
-    Client_Secret = $clientSecret
-}
-#>
-# Get the access token
-# $tokenResponse = Invoke-RestMethod -Uri "https://login.microsoftonline.com/$tenantID/oauth2/v2.0/token" -Method POST -Body $tokenBody
-
-# Set the authorization headers
-<#
-$headers = @{
-    "Authorization" = "Bearer $($tokenResponse.access_token)"
-    "Content-type"  = "application/json"
-}
-    #>
-
 # Do some stuff
 
 # Prepare client secret credential

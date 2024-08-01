@@ -34,7 +34,7 @@
         }
     },
     {
-        "eventAction": "create",
+        "eventAction": "delete",
         "eventData": {
             "subject": "Betriebsruhe",
             "location": "Betriebsruhe",
