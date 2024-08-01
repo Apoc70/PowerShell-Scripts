@@ -57,7 +57,7 @@ RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS CODE REMAINS WITH THE USER.
 
 Written by: Thomas Stensitzki
 
-THe supporting script Add-EntraIdAppRegistration is based on content published by [Andres Bohren](https://blog.icewolf.ch/archive/2022/12/02/create-azure-ad-app-registration-with-microsoft-graph-powershell)
+The supporting script Add-EntraIdAppRegistration is based on content published by [Andres Bohren](https://blog.icewolf.ch/archive/2022/12/02/create-azure-ad-app-registration-with-microsoft-graph-powershell)
 
 ### Stay connected
 
