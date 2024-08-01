@@ -16,7 +16,7 @@
 
     .DESCRIPTION
 
-    The script reads a JSON file with event data and creates calendar items in the default calendar of users in a security group.
+    The script reads a JSON file with event data and creates or deletes calendar events in the default calendar of users in a security group.
 
     Use the Add-EntraIdAppRegistration.ps1 script to create a custom application registration in Entra ID.
 
@@ -33,7 +33,7 @@
     1.0     Initial community release
 
     .PARAMETER EventFileName
-    The name of the JSON file containing the event data located in the script directory.
+    The name of the JSON file containing event data and action located in the script directory.
 
     .PARAMETER SettingsFileName
     The file name of the settings file located in the script directory.
@@ -41,7 +41,7 @@
     .EXAMPLE
     Create calendar items for users based on the JSON file CustomEvents.json and the settings file CustomSettings.xml
 
-    .\Add-CustomCalendarItems.ps1 -EventFileName CustomEvents.json SettingsFileName CustomSettings.xml
+    .\Add-CustomCalendarEvents.ps1 -EventFileName CustomEvents.json SettingsFileName CustomSettings.xml
 #>
 [CmdletBinding()]
 param(
@@ -160,32 +160,54 @@ if (Test-Path -Path (Join-Path -Path $ScriptDir -ChildPath $EventFileName) ) {
                     # Initialize counters
                     $calendarEventsAdded = 0
                     $calendarEventsSkipped = 0
+                    $calendarEventsDeleted = 0
 
                     # Loop through each event in the JSON data and create calendar items as needed
                     foreach ($event in $jsonData) {
 
-                        Write-Verbose ('- Processing event "{0}" [Start {1}]' -f $event.Subject, $event.Start.DateTime)
+                        Write-Verbose ('- Processing event "{0}" [Start: {1} | Action: {2}]' -f $event.eventData.Subject, $event.eventData.Start.DateTime, $event.eventAction)
+
+                        # Parse event action from JSON data
+                        $eventAction = ([string]$event.eventAction).ToUpper()
 
                         # Check if the event already exists
-                        $start = ([datetime]([string]$event.Start.DateTime))
-                        $existingEvent = Get-MgUserCalendarEvent -UserId $user.Id -CalendarId $calendar.Id | Where-Object { $_.Subject -eq [string]$event.Subject -and ( ([DateTime]$_.Start.DateTime) -eq $start ) }
+                        $start = ([datetime]([string]$event.eventData.Start.DateTime))
+                        $existingEvent = Get-MgUserCalendarEvent -UserId $user.Id -CalendarId $calendar.Id | Where-Object { $_.Subject -eq ([string]$event.eventData.Subject) -and ( ([DateTime]$_.Start.DateTime) -eq $start ) }
 
-                        if ($null -eq $existingEvent) {
-                            # Event does not exist, create it
-                            Write-Host -Message ('- Creating event "{0}" [Start {1}]' -f $event.Subject, $event.Start.DateTime)
-                            $logger.Write( ('Creating event {0} [Start {2}] for user {1}' -f $event.Subject, $user.UserPrincipalName, $event.Start.DateTime) )
+                        if (($null -eq $existingEvent) -and ($eventAction -eq 'CREATE')) {
+                            # Event does not exist, and eventAction is CREATE, create the event
+
+                            # Write event creation information to the console and log file
+                            $message = ('- Creating event {0} [Start {2}] for user {1}' -f $event.eventData.Subject, $user.UserPrincipalName, $event.eventData.Start.DateTime)
+                            Write-Host -Message $message
+                            $logger.Write($message)
 
                             # Convert the event to JSON
-                            $eventJson = $event | ConvertTo-Json -Depth 10
+                            $eventJson = $event.eventData | ConvertTo-Json -Depth 10
 
                             # Create the event
                             $null = New-MgUserCalendarEvent -CalendarId $calendar.Id -UserId $user.Id-BodyParameter $eventJson
 
+                            # Increment the counter
                             $calendarEventsAdded++
+                        }
+                        elseif (($null -ne $existingEvent) -and ($eventAction -eq 'DELETE')) {
+                            # Event exists, and eventAction is DELETE, delete the event
+
+                            # Write event deletion information to the console and log file
+                            $message = ('- DELETING event {0} [Start {2}] for user {1}' -f $event.eventData.Subject, $user.UserPrincipalName, $event.eventData.Start.DateTime)
+                            Write-Host -Message $message
+                            $logger.Write($message)
+
+                            # Delete the event
+                            $null = Remove-MgUserEvent -UserId $user.Id -EventId $existingEvent.Id
+
+                            # Increment the counter
+                            $calendarEventsDeleted++
                         }
                         else {
                             # Event already exists
-                            Write-Host -Message ('Event "{0}" [Start {1}] already exists' -f $event.Subject, $event.Start.DateTime)
+                            Write-Host -Message ('- Event "{0}" [Start {1}] already exists and is skipped' -f $event.eventData.Subject, $event.eventData.Start.DateTime)
 
                             $calendarEventsSkipped++
                         }
@@ -197,7 +219,7 @@ if (Test-Path -Path (Join-Path -Path $ScriptDir -ChildPath $EventFileName) ) {
                     Write-Host -Message ('No calendar named "Calendar" found for user {0}' -f $user.UserPrincipalName)
                 }
 
-                $logger.Write( ('Processed {0} events for user {1} - Added: {2} - Skipped: {3}' -f $jsonData.Count, $user.UserPrincipalName, $calendarEventsAdded, $calendarEventsSkipped) )
+                $logger.Write( ('Processed {0} events for user {1} - Added: {2} - Skipped: {3} - Deleted: {4}' -f $jsonData.Count, $user.UserPrincipalName, $calendarEventsAdded, $calendarEventsSkipped, $calendarEventsDeleted) )
             }
         }
         else {
