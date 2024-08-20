@@ -17,6 +17,22 @@
     - PowerShell 7.1+
     - Account executing this script must be a role member of the Application Administrator or Global Administrator role
 
+    Revision History
+    --------------------------------------------------------------------------------
+    1.0     Initial community release
+
+    .PARAMETER AppName
+
+    The display name of the application in Entra ID
+
+    .PARAMETER AppSecretName
+
+    The name of the client secret in Entra ID
+
+    .PARAMETER AppOwnerEmailAddress
+
+    The email address of the application owner
+
 #>
 [CmdletBinding()]
 param(
@@ -30,7 +46,7 @@ if ($null -ne (Get-Module -Name Microsoft.Graph.Authentication -ListAvailable).V
 }
 else {
     Write-Warning -Message 'Unable to load Import-Module Microsoft.Graph.Authentication PowerShell module.'
-    Write-Warning -Message 'Open an administrative PowerShell session and run Install-Module Import-Module Microsoft.Graph'
+    Write-Warning -Message 'Open an administrative PowerShell session and run Install-Module Microsoft.Graph'
     exit
 }
 if ($null -ne (Get-Module -Name Microsoft.Graph.Applications -ListAvailable).Version) {
@@ -38,7 +54,7 @@ if ($null -ne (Get-Module -Name Microsoft.Graph.Applications -ListAvailable).Ver
 }
 else {
     Write-Warning -Message 'Unable to load Import-Module Microsoft.Graph.Applications PowerShell module.'
-    Write-Warning -Message 'Open an administrative PowerShell session and run Install-Module Import-Module Microsoft.Graph'
+    Write-Warning -Message 'Open an administrative PowerShell session and run Install-Module Microsoft.Graph'
     exit
 }
 
