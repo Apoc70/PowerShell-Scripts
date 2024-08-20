@@ -1,7 +1,5 @@
 # Test-DomainAvailability.ps1
 
-Check the availability of a domain in a selected Office 365 region.
-
 ## Description
 
 The script queries the login uri for the selected Office 365 region. The response contains metadata about the domain queried.
@@ -28,7 +26,7 @@ Currently implemented: Global, Germany, China
 ## Examples
 
 ``` PowerShell
-Test-DomainAvailability -DomainName example.com 
+Test-DomainAvailability -DomainName example.com
 ```
 
 Test domain availability in the default region - Office 365 Global
@@ -41,24 +39,22 @@ Test domain availability in Office 365 China
 
 ## Note
 
-THIS CODE IS MADE AVAILABLE AS IS, WITHOUT WARRANTY OF ANY KIND. THE ENTIRE  
+THIS CODE IS MADE AVAILABLE AS IS, WITHOUT WARRANTY OF ANY KIND. THE ENTIRE
 RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS CODE REMAINS WITH THE USER.
 
 ## Credits
 
 Written by: Thomas Stensitzki
 
-## Stay connected
+### Stay connected
 
-- My Blog: [http://justcantgetenough.granikos.eu](http://justcantgetenough.granikos.eu)
-- Twitter: [https://twitter.com/stensitzki](https://twitter.com/stensitzki)
-- LinkedIn: [http://de.linkedin.com/in/thomasstensitzki](http://de.linkedin.com/in/thomasstensitzki)
-- Github: [https://github.com/Apoc70](https://github.com/Apoc70)
-- MVP Blog: [https://blogs.msmvps.com/thomastechtalk/](https://blogs.msmvps.com/thomastechtalk/)
-- Tech Talk YouTube Channel (DE): [http://techtalk.granikos.eu](http://techtalk.granikos.eu)
+- My Blog: [https://blog.granikos.eu](https://blog.granikos.eu)
+- Bluesky: [https://bsky.app/profile/stensitzki.bsky.social](https://bsky.app/profile/stensitzki.bsky.social)
+- LinkedIn: [https://www.linkedin.com/in/thomasstensitzki](https://www.linkedin.com/in/thomasstensitzki)
+- YouTube: [https://www.youtube.com/@ThomasStensitzki](https://www.youtube.com/@ThomasStensitzki)
+- LinkTree: [https://linktr.ee/stensitzki](https://linktr.ee/stensitzki)
 
 For more Office 365, Cloud Security, and Exchange Server stuff checkout services provided by Granikos
 
-- Blog: [http://blog.granikos.eu](http://blog.granikos.eu)
-- Website: [https://www.granikos.eu/en/](https://www.granikos.eu/en/)
-- Twitter: [https://twitter.com/granikos_de](https://twitter.com/granikos_de)
+- Website: [https://granikos.eu](https://www.granikos)
+- Bluesky: [https://bsky.app/profile/granikos.bsky.social](https://bsky.app/profile/granikos.bsky.social)
