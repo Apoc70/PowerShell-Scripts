@@ -44,11 +44,19 @@
 
 Param(
   [string]$InternalUrl='',
-  [string]$ExternalUrl=''
+  [string]$ExternalUrl='',
+  [string]$AutodiscoverUrl='',
+  [string]$ServerName = ''
 )
 
-# Fetch Exchange Server 2016+ Servers
-$exchangeServers = Get-ExchangeServer | Where-Object {($_.IsE15OrLater -eq $true) -and ($_.ServerRole -ilike '*Mailbox*')}
+if($ServerName -ne '') {
+  # Fetch Exchange Server
+  $exchangeServers = Get-ExchangeServer -Identity $ServerName
+}
+else {
+  # Fetch Exchange Server 2016+ Servers
+  $exchangeServers = Get-ExchangeServer | Where-Object {($_.IsE15OrLater -eq $true) -and ($_.ServerRole -ilike '*Mailbox*')}
+}
 
 if($InternalUrl -ne '' -and $null -ne $exchangeServers) {
 
@@ -64,7 +72,7 @@ if($InternalUrl -ne '' -and $null -ne $exchangeServers) {
   Write-Output ('New INTERNAL Url: {0}' -f $InternalUrl)
 
   # Set Internal Urls
-  $exchangeServers | ForEach-Object{ Set-ClientAccessService -Identity $_.Name -AutodiscoverServiceInternalUri ('{0}/autodiscover/autodiscover.xml' -f $InternalUrl) -Confirm:$false}
+  $exchangeServers | ForEach-Object{ Set-ClientAccessService -Identity $_.Name -AutodiscoverServiceInternalUri ('{0}/autodiscover/autodiscover.xml' -f $AutodiscoverUrl) -Confirm:$false}
   $exchangeServers | Get-WebServicesVirtualDirectory | Set-WebServicesVirtualDirectory -InternalUrl ('{0}/ews/exchange.asmx' -f $InternalUrl) -Confirm:$false
   $exchangeServers | Get-OabVirtualDirectory | Set-OabVirtualDirectory -InternalUrl ('{0}/oab' -f $InternalUrl) -Confirm:$false
   $exchangeServers | Get-OwaVirtualDirectory | Set-OwaVirtualDirectory -InternalUrl ('{0}/owa' -f $InternalUrl) -Confirm:$false
@@ -86,7 +94,6 @@ if($ExternalUrl -ne '' -and $null -ne $exchangeServers) {
   Write-Output ('New EXTERNAL Url: {0}' -f $ExternalUrl)
 
   # Set External Urls
-  $exchangeServers | ForEach-Object{ Set-ClientAccessService -Identity $_.Name -AutodiscoverServiceInternalUri ('{0}/autodiscover/autodiscover.xml' -f $ExternalUrl) -Confirm:$false }
   $exchangeServers | Get-WebServicesVirtualDirectory | Set-WebServicesVirtualDirectory -ExternalUrl ('{0}/ews/exchange.asmx' -f $ExternalUrl) -Confirm:$false
   $exchangeServers | Get-OabVirtualDirectory | Set-OabVirtualDirectory -ExternalUrl ('{0}/oab' -f $ExternalUrl) -Confirm:$false
   $exchangeServers | Get-OwaVirtualDirectory | Set-OwaVirtualDirectory -ExternalUrl ('{0}/owa' -f $ExternalUrl) -Confirm:$false
