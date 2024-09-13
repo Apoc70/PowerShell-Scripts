@@ -154,6 +154,9 @@ if (Test-Path -Path (Join-Path -Path $ScriptDir -ChildPath $EventFileName) ) {
                         $start = ([datetime]([string]$event.eventData.Start.DateTime))
                         $existingEvent = Get-MgUserCalendarEvent -UserId $user.Id -CalendarId $calendar.Id | Where-Object { $_.Subject -eq ([string]$event.eventData.Subject) -and ( ([DateTime]$_.Start.DateTime) -eq $start ) }
 
+                        $existingEvent | ConvertTo-Json
+                        Write-Host '----------------------------'
+
                         if (($null -eq $existingEvent) -and ($eventAction -eq 'CREATE')) {
                             # Event does not exist, and eventAction is CREATE, create the event
 
