@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
     Add calendar items to the default calendar of users in a security group
 
@@ -193,6 +193,7 @@ if (Test-Path -Path (Join-Path -Path $ScriptDir -ChildPath $EventFileName) ) {
                             Write-Host -Message ('- Event "{0}" [Start {1}] already exists and is skipped' -f $event.eventData.Subject, $event.eventData.Start.DateTime)
 
                             $calendarEventsSkipped++
+
                         }
                     }
                 }
