@@ -16,3 +16,6 @@ $c = Add-ADSyncConnector -Connector $c
 
 Set-ADSyncAADPasswordSyncConfiguration -SourceConnector $adConnector -TargetConnector $aadConnector -Enable $false
 Set-ADSyncAADPasswordSyncConfiguration -SourceConnector $adConnector -TargetConnector $aadConnector -Enable $true
+
+
+Get-Mailbox -ResultSize Unlimited | Get-MailboxFolderStatistics -IncludeAnalysis -FolderScope All | Where-Object {(($_.TopSubjectSize -Match "MB") -and ($_.TopSubjectSize -GE 50.0)) -or ($_.TopSubjectSize -Match "GB")} | Select-Object Identity, TopSubject, TopSubjectSize | Export-CSV -path "C:\report.csv" -notype

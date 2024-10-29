@@ -22,7 +22,7 @@
     SOFTWARE
 #>
 
-# Version 2.7.1, 2024-07-16
+# Version 2.7.2, 2024-10-29
 
 <#
     .SYNOPSIS
@@ -126,7 +126,7 @@
     Show the number of disconnected (soft-deleted) mailboxes per database
 
     .PARAMETER ShowProvisioningStatus
-    Show IsExludedFromProvisioning or IsExcludedFromProvisioningByOperator status in the report
+    Show  IsExludedFromProvisioning or IsExcludedFromProvisioningByOperator status in the report
 
     .PARAMETER CssFileName
     The filename containing the Cascading Style Sheet (CSS) information for the HTML report
@@ -178,7 +178,7 @@ $MinFreeDiskspace = 30 # Mark free space less than this value (%) in red
 $MaxDatabaseSize = 250 # Mark database larger than this value (GB) in red
 
 # Version
-$ScriptVersion = '2.7.1'
+$ScriptVersion = '2.7.2'
 
 # Default variables
 $NotAvailable = 'N/A'
@@ -1266,7 +1266,8 @@ function Get-HtmlDagHeader {
     <th>Database Availability Group Members</th></tr>
   <tr><td>$($DAG.Name)</td><td>$($DAG.MemberCount)</td><td>$(($DAG.Databases | Measure-Object).Count)</td><td>"
 
-  $DAG.Members | ForEach-Object { $Output += ('{0} ' -f $_) }
+  # 2.7.2 ordered list of member servers
+  $DAG.Members | Sort-Object | ForEach-Object { $Output += ('{0} ' -f $_) }
 
   $Output += '</td></tr></table><br />'
 
@@ -1650,7 +1651,7 @@ $HtmlReportFullPath = Join-Path -Path (Split-Path -Path $script:MyInvocation.MyC
 
 $Output | Out-File -FilePath $HtmlReportFullPath -Force -Encoding utf8
 
-
+# 5 Send Mail
 if ($SendMail) {
   Show-ProgressBar -PercentComplete 95 -Status 'Sending mail message...' -Stage 4
 
