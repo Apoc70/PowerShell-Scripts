@@ -22,7 +22,7 @@
     SOFTWARE
 #>
 
-# Version 2.7.2, 2024-10-29
+# Version 2.7.3, 2024-11-14
 
 <#
     .SYNOPSIS
@@ -178,7 +178,7 @@ $MinFreeDiskspace = 30 # Mark free space less than this value (%) in red
 $MaxDatabaseSize = 250 # Mark database larger than this value (GB) in red
 
 # Version
-$ScriptVersion = '2.7.2'
+$ScriptVersion = '2.7.3'
 
 # Default variables
 $NotAvailable = 'N/A'
@@ -1410,10 +1410,12 @@ for ($i = 1; $i -le 40; $i++) {
 # 2024-01-16 TST Security Update Mapping added
 $ExSUString = @{
   # Exchange 2019 CU14
+  '15.2.1544.13' = 'Nov24SU'
   '15.2.1544.11' = 'Apr24HU'
   '15.2.1544.9' = 'Mar24SU'
 
   # Exchange 2019 CU13
+  '15.2.1258.38' = 'Nov24SU'
   '15.2.1258.32' = 'Mar24SU'
   '15.2.1258.28' = 'Nov23SU'
   '15.2.1258.27' = 'Oct23SU'
@@ -1436,6 +1438,7 @@ $ExSUString = @{
   '15.2.1118.9'  = 'Mar22SU'
 
   # Exchange 2016 CU23
+  '15.1.2507.43' = 'Nov24SU'
   '15.1.2507.37' = 'Mar24SU'
   '15.1.2507.35' = 'Nov23SU'
   '15.1.2507.34' = 'Oct23SU'
