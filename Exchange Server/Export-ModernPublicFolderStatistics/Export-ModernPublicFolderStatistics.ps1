@@ -30,10 +30,16 @@
     Revision History
     --------------------------------------------------------------------------------
     1.0 Initial release
+    1.1 Logging added
 
     .PARAMETER  ExportFile
 
     The name of the CSV file to which the script exports the statistics. The default value is PublicFolderStats-{0}.csv, where {0} is the current date in the format yyyy-MM-dd.
+    The script copies the file to the archive folder.
+
+    .PARAMETER ExportFileDefault
+
+    The name of the CSV file containing the most current export for further processing by other scripts.
 
     .PARAMETER  ResultSize
 
@@ -51,6 +57,7 @@
 [CmdletBinding()]
 param(
     [string]$ExportFile = ('PublicFolderStats-{0}.csv' -f (Get-Date -Format 'yyyy-MM-dd')  ),
+    [string]$ExportFilenameCurrent = 'PublicFolderStats-Current.csv',
     [string]$ResultSize = 'Unlimited' # Default value, can be changed for testing purposes
 )
 
@@ -58,11 +65,27 @@ param(
 $StopWatch = [System.Diagnostics.Stopwatch]::StartNew()
 
 # some variables
-$ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
+$scriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 $summaryFileName = 'PublicFolderSummary.csv'
+
+function Import-RequiredModules {
+
+  # Import central logging functions
+  if($null -ne (Get-Module -Name GlobalFunctions -ListAvailable).Version) {
+    Import-Module -Name GlobalFunctions
+  }
+  else {
+    Write-Warning -Message 'Unable to load GlobalFunctions PowerShell module.'
+    Write-Warning -Message 'Please check http://bit.ly/GlobalFunctions for further instructions'
+    exit
+  }
+
+}
+
 
 # Function that determines if to skip the given folder
 function IsSkippableFolder() {
+    [CmdletBinding()]
     param(
         $publicFolder
     )
@@ -87,7 +110,6 @@ function CreateFolderObjects {
 
     # Initialize progress bar
     Write-Progress -Activity "Processing Folders" -Status "Initializing..." -PercentComplete 0
-
 
     foreach ($publicFolderEntryId in $script:FolderStatistics) {
 
@@ -153,6 +175,49 @@ function CreateFolderObjects {
 
 }
 
+function Copy-ToArchive {
+    [CmdletBinding()]
+    param(
+        [string]$SourceFilename,
+        [string]$archiveFolderName = 'Archive'
+    )
+
+    if(-not (Test-Path -Path (Join-Path -Path $scriptDir -ChildPath $archiveFolderName)  ) ) {
+        Write-Verbose ('[{0}] Creating archive folder' -f ((Get-Date).ToString()))
+        New-Item -Path $scriptDir -Name $archiveFolderName -ItemType "directory" -Confirm:$false
+    }
+
+    try{
+        if (Test-Path -Path (Join-Path -Path (Join-Path -Path $scriptDir -ChildPath $archiveFolderName ) -ChildPath $ExportFilenameCurrent) ) {
+            Remove-Item -Path (Join-Path -Path (Join-Path -Path $scriptDir -ChildPath $archiveFolderName ) -ChildPath $ExportFilenameCurrent) -Force -Confim:$false
+        }
+        $null = Copy-Item $SourceFilename -Destination (Join-Path -Path $scriptDir -ChildPath $archiveFolderName) -Force -Confirm:$false
+    }
+    catch{
+        Write-Error ('The script cannot copy the CSV file to {0}' -f (Join-Path -Path $scriptDir -ChildPath $archiveFolderName) )
+    }
+
+    try {
+        Write-Verbose ('Rename: {0}' -f (Join-Path -Path $scriptDir -ChildPath $ExportFilenameCurrent)  )
+        $null = Remove-Item -Path (Join-Path -Path $scriptDir -ChildPath $ExportFilenameCurrent) -Force -Confirm:$false #-ErrorAction SilentlyContinue
+
+        $null = Rename-Item -Path $SourceFilename -NewName $ExportFilenameCurrent -Force -Confirm:$false
+    }
+    catch{
+        Write-Error ('The script cannot rename the CSV file to {0}' -f (Join-Path -Path $scriptDir -ChildPath $ExportFilenameCurrent) )
+    }
+
+}
+
+### MAIN ###########################
+Import-RequiredModules
+
+# Create new logger
+$logger = New-Logger -ScriptRoot $ScriptDir -ScriptName $ScriptName -LogFileRetention 14
+# Purge logs depening on LogFileRetention
+$logger.Purge()
+$logger.Write('Script started')
+
 # Array of folder objects for exporting
 $script:ExportFolders = $null
 
@@ -176,14 +241,12 @@ $script:ipmEmptyCount = 0
 $script:ipmNoteCount = 0
 $script:PublicFolderItemSizeInBytes = 0
 
-
 # Gather modern public folders of IPM_SUBTREE
-Write-Progress -Activity "Fetching IPM_SUBTREE Folders" -Status "Initializing..." -PercentComplete 0
+Write-Progress -Activity "Gathering Public Folders" -Status "IPM_SUBTREE folder... [be patient]" -PercentComplete 25
 $ipmSubtreeFolderList = Get-PublicFolder "\" -Recurse -ResultSize:$ResultSize
-
-Write-Progress -Activity "Fetching IPM_SUBTREE Folders" -Status "Id to Name mapping..." -PercentComplete 25
 $ipmSubtreeFolderList | ForEach-Object { $script:IdToNameMap.Add($_.EntryId, $_.Identity.ToString()) }
 
+$logger.Write( ('Gathered {0} IPM_SUBTREE folders' -f ($ipmSubtreeFolderList | Measure-Object).Count  ) )
 Write-Verbose ('[{0}] Gathered {1} IPM_SUBTREE folders' -f ((Get-Date).ToString()), ($ipmSubtreeFolderList | Measure-Object).Count )
 
 # Folders that are skipped while computing statistics
@@ -193,50 +256,63 @@ $script:SkippedSubtree = @("\NON_IPM_SUBTREE\OFFLINE ADDRESS BOOK", "\NON_IPM_SU
     "\NON_IPM_SUBTREE\DUMPSTER_ROOT\");
 
 # Gather modern public folders of NON_IPM_SUBTREE
-Write-Progress -Activity "Fetching NON_IPM_SUBTREE Folders" -Status "Initializing..." -PercentComplete 50
+Write-Progress -Activity "Gathering Public Folders" -Status "NON_IPM_SUBTREE folder... [be patient]" -PercentComplete 50
 $nonIpmSubtreeFolderList = Get-PublicFolder "\NON_IPM_SUBTREE" -Recurse -ResultSize:$ResultSize
+$logger.Write( ('Gathered {0} NON_IPM_SUBTREE folders' -f ($nonIpmSubtreeFolderList | Measure-Object).Count  ) )
+Write-Verbose ('[{0}] Gathered {1} NON_IMP_SUBTREE folders' -f ((Get-Date).ToString()), ($nonIpmSubtreeFolderList | Measure-Object).Count )
 
-Write-Verbose ('[{0}] Gathered {1} NON_IPM_SUBTREE folders' -f ((Get-Date).ToString()), ($nonIpmSubtreeFolderList | Measure-Object).Count )
-
-Write-Progress -Activity "Fetching NON_IPM_SUBTREE Folders" -Status "Processing..." -PercentComplete 75
 foreach ($nonIpmSubtreeFolder in $nonIpmSubtreeFolderList) {
     $script:NonIpmSubtreeFolders.Add($nonIpmSubtreeFolder.EntryId, $nonIpmSubtreeFolder);
 }
 
 # Gather public folder statistics
+Write-Progress -Activity "Gathering Public Folders" -Status "Public Folder Statistics... [be patient]" -PercentComplete 75
+$logger.Write( 'Gathering Public Folder Statistics' )
+
 $script:FolderStatistics = Get-PublicFolderStatistics -ResultSize:$ResultSize
+
+$logger.Write( ('Gathered statistics for {0} folders' -f ($script:FolderStatistics | Measure-Object).Count) )
 Write-Verbose ('[{0}] Gathered statistics for {1} folders' -f ((Get-Date).ToString()), ($script:FolderStatistics | Measure-Object).Count )
 
 # prepare variable
-$script:ExportFolders = New-Object System.Collections.ArrayList -ArgumentList ($script:FolderStatistics.Count + 3);
+$script:ExportFolders = New-Object System.Collections.ArrayList -ArgumentList ($script:FolderStatistics.Count + 3)
 
 # Parse folder data
 CreateFolderObjects
 
 # Export results to CSV
-$exportFilePath = Join-Path -Path $ScriptDir -Childpath $ExportFile
+$exportFilePath = Join-Path -Path $scriptDir -Childpath $ExportFile
 $script:ExportFolders | Sort-Object -Property Index | Export-CSV -Path $exportFilePath -Force -NoTypeInformation -Encoding UTF8
 
-$publicFolderItemSizeinMB =  [math]::Round($script:PublicFolderItemSizeInBytes / 1048576)
+Copy-ToArchive -SourceFilename $exportFilePath
+
+# Fetch Root folders
+$rootFolderCount = (Get-PublicFolder \ -GetChildren -ResultSize Unlimited).Count
+
+# Do some calculations
+$publicFolderItemSizeinMB = [math]::Round($script:PublicFolderItemSizeInBytes / 1048576)
+$publicFolderItemSizeinGB = [math]::Round($publicFolderItemSizeinMB / 1024)
 
 # Export summary
 $property = [ordered]@{
-    Date                  = (Get-Date)
-    PublicFolderCount     = $ipmSubtreeFolderList.Count
-    PublicFolderItemSizeInBytes = $script:PublicFolderItemSizeInBytes
-    PublicFolderItemSizeInMB = $publicFolderItemSizeinMB
-   # PublicFolderItemSizeInGB = [INT](($script:PublicFolderItemSizeInBytes).ToMB()/1024)
-    DefaultFolderCount    = $script:ipmNoteCount
-    CalendarFolderCount   = $script:ipmAppointmentCount
-    ContactFolderCount    = $script:ipmContactCount
-    StickyNoteFolderCount = $script:ipmStickyNoteCount
-    IPMEmptyFolderCount   = $script:ipmEmptyCount
+    Date                  = (Get-Date -Format 'dd.MM.yyyy')
+    Count     = $ipmSubtreeFolderList.Count
+    SizeInBytes = $script:PublicFolderItemSizeInBytes
+    SizeInMB = $publicFolderItemSizeinMB
+    SizeInGB = $publicFolderItemSizeinGB
+    DefaultFolders    = $script:ipmNoteCount
+    CalendarFolders   = $script:ipmAppointmentCount
+    ContactFolders    = $script:ipmContactCount
+    StickyNoteFolders = $script:ipmStickyNoteCount
+    NoFolderType   = $script:ipmEmptyCount
+    RootFolders = $rootFolderCount
 }
 
 # Export summary object to CSV and append to existing file
 $summaryObject = New-Object -TypeName PSObject -Property $property
-$summaryObject | Export-CSV -Path (Join-Path -Path $ScriptDir -ChildPath $summaryFileName) -Append -Force -NoTypeInformation -Encoding UTF8
+$summaryObject | Export-CSV -Path (Join-Path -Path $scriptDir -ChildPath $summaryFileName) -Append -Force -NoTypeInformation -Encoding UTF8
 
 # Finish
 $StopWatch.Stop()
+$logger.Write( ('Script runtime {0:00}:{1:00}:{2:00}' -f $StopWatch.Elapsed.Hours, $StopWatch.Elapsed.Minutes, $StopWatch.Elapsed.Seconds) )
 Write-Verbose -Message ('It took {0:00}:{1:00}:{2:00} to run the script.' -f $StopWatch.Elapsed.Hours, $StopWatch.Elapsed.Minutes, $StopWatch.Elapsed.Seconds)
