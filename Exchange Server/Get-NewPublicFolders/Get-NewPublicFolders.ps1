@@ -62,6 +62,7 @@ param(
   [Parameter(ParameterSetName='Legacy')]
   [string]$ServerName = 'MYSERVER',
   [switch]$FetchFolderPermissions,
+  [string]$ExcludeUser = 'ExchangePublicFolderManager',
   [switch]$SendMail,
   [string]$MailFrom = "",
   [string]$MailTo = "",
@@ -75,7 +76,7 @@ $ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 
 # Use current date as file timestamp
 $now = Get-Date -Format 'yyyy-MM-dd'
-$CsvFilePath = Join-Path -Path $ScriptDir -ChildPath ('Get-NewPublicFolders {0}.csv' -f ($now))
+$CsvFilePath = Join-Path -Path $ScriptDir -ChildPath ('NewPublicFolders {0}.csv' -f ($now))
 
 $cssFile = Join-Path -Path $ScriptDir -ChildPath styles.css
 $now = Get-Date -Format F
@@ -83,14 +84,14 @@ $reportTitle = "New Public Folder Report - $($now)"
 
 # Gather legacy public folder statistics
 if($Legacy) {
-  # Query lagacy public folders
+  # Query legacy public folders
 
   Get-PublicFolderStatistics -Server $ServerName | Where-Object{$_.CreationTime -ge $CreationDate} | Select-Object -Property FolderPath,Name,ItemCount | Sort-Object -Property FolderPath | Export-Csv -Path $CsvFilePath -Encoding UTF8 -NoTypeInformation -Force -Delimiter '|'
 }
 else {
   # Query modern public folders
 
-  $PublicFolder = Get-PublicFolderStatistics -ResultSize Unlimited | Where-Object{$_.CreationTime -ge $CreationDate} | Select-Object -Property FolderPath,Name,ItemCount,CreationTime,LastModificationTime | Sort-Object -Property FolderPath
+  $PublicFolder = Get-PublicFolderStatistics -ResultSize Unlimited | Where-Object{$_.CreationTime -ge $CreationDate} | Select-Object -Property FolderPath,Name,ItemCount,CreationTime,LastModificationTime,EntryId | Sort-Object -Property FolderPath
 
   $exportFolders = New-Object System.Collections.ArrayList -ArgumentList ( ($PublicFolder | Measure-Object).Count )
 
@@ -100,22 +101,34 @@ else {
 
     foreach($Folder in $PublicFolder) {
 
-        Write-Verbose ('Processiong {0}' -f $Folder.Name)
+      Write-Verbose ('{0}' -f $Folder.FolderPath)
+      Write-Verbose ('{0}' -f $Folder.EntryId)
 
-        $folderPermissions = Get-PublicFolderClientPermission "\Test" | Where-Object{$_.AccessRights -like 'Owner'} | Select-Object User
+      $folderPermPath = $Folder.EntryId
 
-        $property = [ordered]@{
-            FolderPath  = $Folder.FolderPath
-            Name        = $Folder.Name
-            ItemCount   = $Folder.ItemCount
-            CreationTime = $Folder.CreationTime
-            LastModificationTime = $Folder.LastModificationTime
-            Owner       = [string]::Join(', ',$a.User.DisplayName)
-        }
+      Write-Verbose ('Processiong {0}' -f $folderPermPath)
 
-        $folderObject = New-Object -TypeName PSObject -Property $property
+      $folderPermissions = Get-PublicFolderClientPermission $folderPermPath | Where-Object{ ($_.AccessRights -like 'Owner') -and (([string]$_.User) -ne $ExcludeUser)} | Select-Object User
 
-        $null = $exportFolders.Add($folderObject)
+      if( ($folderPermissions | Measure-Object).Count -ne 0) {
+        $ownerList = [string]::Join('; ',$folderPermissions.User.DisplayName)
+      }
+      else {
+        $ownerList = 'No users with OWNER role'
+      }
+
+      $property = [ordered]@{
+          FolderPath  = $Folder.FolderPath
+          Name        = $Folder.Name
+          ItemCount   = $Folder.ItemCount
+          CreationTime = $Folder.CreationTime
+          LastModificationTime = $Folder.LastModificationTime
+          Owner       = $ownerList
+      }
+
+      $folderObject = New-Object -TypeName PSObject -Property $property
+
+      $null = $exportFolders.Add($folderObject)
     }
 
   }
@@ -169,10 +182,12 @@ $head = @"
 <body><h1 align=""center"">$($reportTitle)</h1>
 <p>Public folder timeframe: <strong>$($Days) days</strong></p>
 <p>New public folders created: <strong>$($PublicFolderCount)</strong></p>
+<p>Excluded from lost of owners: $($ExcludeUser)</p>
 "@
 
 [string]$htmlreport = ConvertTo-Html -Body $html -Head $head -Title $reportTitle
 
-Send-Mail -From $MailFrom -To $MailTo -SmtpServer $MailServer -MessageBody $htmlreport -Subject $reportTitle -Attachments $CsvFilePath
-
+Send-Mail -From $MailFrom -To $MailTo -SmtpServer $MailServer -MessageBody $htmlreport -Subject $reportTitle
 }
+
+exit 0
