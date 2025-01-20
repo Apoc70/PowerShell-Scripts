@@ -22,7 +22,7 @@
     SOFTWARE
 #>
 
-# Version 2.7.3, 2024-11-14
+# Version 2.7.4, 2025-01-07
 
 <#
     .SYNOPSIS
@@ -178,12 +178,13 @@ $MinFreeDiskspace = 30 # Mark free space less than this value (%) in red
 $MaxDatabaseSize = 250 # Mark database larger than this value (GB) in red
 
 # Version
-$ScriptVersion = '2.7.3'
+$ScriptVersion = '2.7.4'
 
 # Default variables
 $NotAvailable = 'N/A'
 $ScriptDir = Split-Path -Path $script:MyInvocation.MyCommand.Path
 $EdgeServerNote = 'If there are any Edge Transport Servers subscribed to the Exchange organization, the Exchange version information displayed in the report does not reflect the version currently installed.<br/>The version displayed is the version as of the subscription date.'
+$ReportTitle = 'Exchange Environment Report'
 
 # Set TLS version o TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -1194,20 +1195,20 @@ function Get-HtmlReportHeader {
   $UseCss = $true
 
   # Header
-  $Output = '
+  $Output = "
     <html>
     <body>
-  <title>Exchange Environment Report</title>'
+  <title>$($ReportTitle)</title>"
 
   if ($UseCss -and (Test-Path -Path (Join-Path -Path (Split-Path -Parent $Path) -ChildPath $CssFileName))) {
     $Output += "<style type=""text/css"">$(Get-Content -Path (Join-Path -Path (Split-Path -Parent $Path) -ChildPath $CssFileName))</style>"
   }
 
-  $Output += ("<h2 align=""center"">Exchange Environment Report</h2><h3 align=""center"">Organization: {3}</h3>
+  $Output += ("<h2 align=""center"">{5}</h2><h3 align=""center"">Organization: {3}</h3>
       <h4 align=""center"">Generated {0} - V{4}</h4>
       <table class='header'>
       <tr class='header'>
-  <th colspan=""{1}"" class='header'>{2}</th>" -f (Get-Date -Format $DateLabelFormat), $ExchangeEnvironment.TotalMailboxesByVersion.Count, $LabelTotalServers, $ExchangeEnvironment.OrganizationName, $ScriptVersion)
+  <th colspan=""{1}"" class='header'>{2}</th>" -f (Get-Date -Format $DateLabelFormat), $ExchangeEnvironment.TotalMailboxesByVersion.Count, $LabelTotalServers, $ExchangeEnvironment.OrganizationName, $ScriptVersion, $ReportTitle)
 
   if ($ExchangeEnvironment.RemoteMailboxes) {
     $Output += ("<th colspan=""{0}"" class='header'>{1}</th>" -f ($ExchangeEnvironment.TotalMailboxesByVersion.Count + 2), $LabelTotalMailboxes)
@@ -1410,6 +1411,7 @@ for ($i = 1; $i -le 40; $i++) {
 # 2024-01-16 TST Security Update Mapping added
 $ExSUString = @{
   # Exchange 2019 CU14
+  '15.2.1544.14' = 'Nov24SUv2' #v2.7.4
   '15.2.1544.13' = 'Nov24SU'
   '15.2.1544.11' = 'Apr24HU'
   '15.2.1544.9' = 'Mar24SU'
@@ -1438,6 +1440,7 @@ $ExSUString = @{
   '15.2.1118.9'  = 'Mar22SU'
 
   # Exchange 2016 CU23
+  '15.1.2507.44' = 'Nov24SUv2' #v2.7.4
   '15.1.2507.43' = 'Nov24SU'
   '15.1.2507.37' = 'Mar24SU'
   '15.1.2507.35' = 'Nov23SU'
@@ -1458,15 +1461,17 @@ foreach ($Major in $ExMajorVersionStrings.GetEnumerator()) {
     $ExVersionStrings.Add("$($Major.Key).$($Minor.Key)", @{Long = "$($Major.Value.Long) $($Minor.Value)"; Short = "$($Major.Value.Short)$($Minor.Value)" })
   }
 }
+
 # 1.5.10 Exchange Role String Mapping
-$ExRoleStrings = @{'ClusteredMailbox' = @{Short = 'ClusMBX'; Long = 'CCR/SCC Clustered Mailbox' }
+$ExRoleStrings = @{
+  'ClusteredMailbox'                  = @{Short = 'ClusMBX'; Long = 'CCR/SCC Clustered Mailbox' }
   'Mailbox'                           = @{Short = 'MBX'; Long = 'Mailbox' }
   'ClientAccess'                      = @{Short = 'CAS'; Long = 'Client Access' }
   'HubTransport'                      = @{Short = 'HUB'; Long = 'Hub Transport' }
   'UnifiedMessaging'                  = @{Short = 'UM'; Long = 'Unified Messaging' }
   'Edge'                              = @{Short = 'EDGE'; Long = 'Edge Transport' }
-  'FE'                                = @{Short = 'FE'; Long = 'Front End' }
-  'BE'                                = @{Short = 'BE'; Long = 'Back End' }
+  'FE'                                = @{Short = 'FE'; Long = 'Frontend' }
+  'BE'                                = @{Short = 'BE'; Long = 'Backend' }
   'Hybrid'                            = @{Short = 'HYB'; Long = 'Hybrid' }
   'Coexistence'                       = @{Short = 'COEX'; Long = 'Coexistence' } #2019-05-17 TST Coexistence added
   'Unknown'                           = @{Short = 'Unknown'; Long = 'Unknown' }
@@ -1643,7 +1648,6 @@ if ($ExchangeEnvironment.NonDAGDatabases.Count) {
   $Output += Get-HtmlDatabaseInformationTable -Databases $ExchangeEnvironment.NonDAGDatabases
 }
 
-
 # End
 Show-ProgressBar -PercentComplete 90 -Status 'Finishing off..' -Stage 4
 
@@ -1669,7 +1673,7 @@ if ($SendMail) {
     $smtpMessage.Attachments.Add($smtpAttachment)
   }
 
-  $smtpMessage.Subject = 'Exchange Environment Report'
+  $smtpMessage.Subject = $ReportTitle
   $smtpMessage.Body = $Output
   $smtpMessage.IsBodyHtml = $true
 
