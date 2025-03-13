@@ -72,7 +72,7 @@ For more Office 365, Cloud Security, and Exchange Server stuff checkout services
 - Website: [https://granikos.eu](https://www.granikos)
 - Bluesky: [https://bsky.app/profile/granikos.bsky.social](https://bsky.app/profile/granikos.bsky.social)
 
-## Additional Credits
+### Additional Credits
 
 - Jaap Brasser
 - Georges Zwingelstein
