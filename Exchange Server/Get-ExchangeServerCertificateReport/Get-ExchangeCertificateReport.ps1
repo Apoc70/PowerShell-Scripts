@@ -33,6 +33,21 @@ V1.00, 13/03/2014 - Initial Version
 V1.01, 13/03/2014 - Minor bug fix
 V2.00, 2025-03-12 - Some PowerShell optimizations, changed email sending to Send-MailMessage
 
+.PARAMETER SendMail
+Send the report as an HTML email.
+
+.PARAMETER MailFrom
+Sender address for result summary.
+
+.PARAMETER MailTo
+Recipient address for result summary.
+
+.PARAMETER MailServer
+SMTP Server address for sending result summary.
+
+.PARAMETER cssFilenname
+Name of the CSS file to be used for the HTML report.
+
 #>
 [CmdletBinding()]
 param(
@@ -156,7 +171,7 @@ foreach ($server in $exchangeServers) {
     catch {
         Write-Output ('Error accessing server {0}' -f $server.Name)
         Write-Output $_.Exception.Message
-     }
+    }
 
     if (($certTable | Measure-Object).Count -ne 0) {
         $html = $certTable.GetEnumerator() | Sort-Object -Property Subject, Expires | ConvertTo-Html -Fragment -PreContent "<h2>$serverDetails</h2>"
