@@ -7,7 +7,7 @@
     THIS CODE IS MADE AVAILABLE AS IS, WITHOUT WARRANTY OF ANY KIND. THE ENTIRE
     RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS CODE REMAINS WITH THE USER.
 
-    Version 1.0, 2024-06-27
+    Version 1.1, 2025-04-25
 
     Please post ideas, comments, and suggestions at GitHub.
 
@@ -31,6 +31,7 @@
     Revision History
     --------------------------------------------------------------------------------
     1.0     Initial community release
+    1.1     Support for nested groups added
 
     .PARAMETER EventFileName
     The name of the JSON file containing event data and action located in the script directory.
@@ -113,7 +114,10 @@ if (Test-Path -Path (Join-Path -Path $ScriptDir -ChildPath $EventFileName) ) {
     if ($jsonData.Count -gt 0) {
 
         # Fetch security group members
-        $securityGroupMembers = Get-MgGroupMember -GroupId $SecurityGroupId -All
+        # v1.0: $securityGroupMembers = Get-MgGroupMember -GroupId $SecurityGroupId -All
+        # v1.1: Changed to Get-MgGroupTransitiveMember for fetching nested group members
+
+        $securityGroupMembers = Get-MgGroupTransitiveMember -GroupId $SecurityGroupId -All -ErrorAction Stop | Where-Object { $_.AdditionalProperties.'@odata.type' -eq '#microsoft.graph.user' }
 
         # Check if we have members in the security group
         if ($securityGroupMembers.Count -gt 0) {
@@ -154,9 +158,6 @@ if (Test-Path -Path (Join-Path -Path $ScriptDir -ChildPath $EventFileName) ) {
                         $start = ([datetime]([string]$event.eventData.Start.DateTime))
                         $existingEvent = Get-MgUserCalendarEvent -UserId $user.Id -CalendarId $calendar.Id | Where-Object { $_.Subject -eq ([string]$event.eventData.Subject) -and ( ([DateTime]$_.Start.DateTime) -eq $start ) }
 
-                        $existingEvent | ConvertTo-Json
-                        Write-Host '----------------------------'
-
                         if (($null -eq $existingEvent) -and ($eventAction -eq 'CREATE')) {
                             # Event does not exist, and eventAction is CREATE, create the event
 
@@ -193,7 +194,6 @@ if (Test-Path -Path (Join-Path -Path $ScriptDir -ChildPath $EventFileName) ) {
                             Write-Host -Message ('- Event "{0}" [Start {1}] already exists and is skipped' -f $event.eventData.Subject, $event.eventData.Start.DateTime)
 
                             $calendarEventsSkipped++
-
                         }
                     }
                 }
