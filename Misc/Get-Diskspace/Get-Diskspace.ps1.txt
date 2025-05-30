@@ -1,0 +1,243 @@
+<# 
+  .SYNOPSIS 
+
+  Fetches disk/volume information from a given computer
+
+  Thomas Stensitzki 
+
+  THIS CODE IS MADE AVAILABLE AS IS, WITHOUT WARRANTY OF ANY KIND. THE ENTIRE  
+  RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS CODE REMAINS WITH THE USER. 
+
+  Version 1.3, 2019-10-16
+
+  Please send ideas, comments and suggestions to support@granikos.eu 
+
+  .LINK 
+
+  https://scripts.granikos.eu
+
+  .DESCRIPTION 
+
+  This script fetches disk/volume information from a given computer and displays 
+
+  * Volume name
+  * Capacity
+  * Free Space
+  * Free Space in percent
+  * Boot Volume Status
+  * System Volume Status
+  * File Systemtype 
+
+  With -SendMail switch no data is returned to the console. 
+     
+  .NOTES 
+
+  Requirements 
+  - Windows Server 2012 R2+  
+  - Remote WMI
+  - Exchange Server Management Shell 2013+
+    
+  Revision History 
+  -------------------------------------------------------------------------------- 
+  1.0  Initial community release 
+  1.1  Email reports added
+  1.11 Send email issue fixed
+  1.2  Some PowerShell hygiene, Html CSS changes
+  1.3  Tested for Windows Server 2019
+  1.4  Free Space percentage added, HTML formatting changed
+
+  .PARAMETER ComputerName
+  Can of the computer to fetch disk information from  
+
+  .PARAMETER Unit
+  Target unit for disk space value (default = GB)
+
+  .PARAMETER AllExchangeServer
+  Switch to fetch disk space data from all Exchange Servers
+
+  .PARAMETER SendMail
+  Switch to send an Html report
+
+  .PARAMETER MailFrom
+  Email address of report sender
+
+  .PARAMETER MailTo
+  Email address of report recipient
+
+  .PARAMETER MailServer
+  SMTP Server for email report
+
+  .EXAMPLE 
+  Get disk information from computer MYSERVER
+    
+  .\Get-Diskpace.ps1 -ComputerName MYSERVER
+
+  .EXAMPLE
+  Get disk information from computer MYSERVER in MB
+
+  .\Get-Diskpace.ps1 -ComputerName MYSERVER -Unit MB
+
+  .EXAMPLE
+  Get disk information from all Exchange servers and send html email
+
+  .\Get-Diskpace.ps1 -AllExchangeServer -SendMail -MailFrom postmaster@sedna-inc.com -MailTo exchangeadmin@sedna-inc.com -MailServer mail.sedna-inc.com
+
+#>
+
+[CmdletBinding()]
+param(
+  [string] $ComputerName = $env:COMPUTERNAME,
+  [ValidateSet('MB','GB')]
+  [string] $Unit = 'GB',
+  [switch] $AllExchangeServer,
+  [switch] $SendMail,
+  [string] $MailFrom = '',
+  [string] $MailTo = '',
+  [string] $MailServer = ''
+)
+
+$scriptVersion = '1.4'
+$Unit = $Unit.ToUpper()
+$now = Get-Date -Format F
+$ReportTitle = ('Diskspace Report - {0}' -f ($now))
+$script:Html = ''
+
+switch($Unit){
+  'GB' {
+    $ConvertTo = 1GB
+  }
+  'MB' {
+    $ConvertTo = 1MB
+  }
+}
+
+function Get-DiskspaceFromComputer {
+  [CmdletBinding()]
+  param(
+    [string] $ServerName = ''
+  )
+    
+  if(($Unit -eq 'GB') -or ($Unit -eq 'MB')) {
+
+    $ServerName = $ServerName.ToUpper()
+
+    Write-Output ('Fetching Volume Data from {0}' -f ($ServerName))
+
+    # This assumes that the account running this script has permissions to access the remote computer using WMI
+    $wmiRaw = Get-WmiObject -Class Win32_Volume -ComputerName $ServerName | where{$_.name -notlike '\\?\*'}
+
+    $wmi = $wmiRaw | Select-Object -Property Name, `
+      @{Label="Capacity ($Unit)";Expression={[decimal]::round($_.Capacity/$ConvertTo)}}, `
+      @{Label="FreeSpace ($Unit)";Expression={[decimal]::round($_.FreeSpace/$ConvertTo)}}, `
+      @{Label="FreeSpace (%)";Expression={[int](($_.FreeSpace/$_.Capacity) * 100).ToString("#")} }, `
+      BootVolume, SystemVolume, FileSystem `
+      | Sort-Object -Property Name 
+
+    $sumCapacity = ($wmiRaw | Measure-Object Capacity -Sum).Sum / 1gb
+
+    # Add WMI data to HTML
+    $script:Html += $wmi | ConvertTo-Html -Fragment -PreContent ('<h2>Server {0}</h2>' -f ($ServerName)) -Postcontent ('<p>{0:0} GB</p><hr/>' -f $sumCapacity)
+  }
+
+  $wmi
+}
+
+Function Test-SendMail {
+  if( ($SendMail) -and ($MailFrom -ne '') -and ($MailTo -ne '') -and ($MailServer -ne '') ) {
+    return $true
+  }
+  else {
+    return $false
+  }
+}
+
+#### MAIN
+If (($SendMail) -and (!(Test-SendMail))) {
+  Throw 'If -SendMail specified, -MailFrom, -MailTo and -MailServer must be specified as well!'
+}
+
+# Some CSS to get a pretty report
+$head = @"
+<!DOCTYPE HTML PUBLIC ""-//W3C//DTD HTML 4.01 Frameset//EN"" ""http://www.w3.org/TR/html4/frameset.dtd"">
+<html><head><title>$($ReportTitle)</title>
+<style type="text/css">
+<!--
+body {
+    font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+}
+h2{ 
+ font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+ clear: both; 
+ font-size: 100%;
+ color:#354B5E; }
+h3{
+    font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+    clear: both;
+    font-size: 75%;
+    margin-left: 20px;
+    margin-top: 30px;
+    color:#475F77;
+}
+table{
+    border-collapse: collapse;
+    border: none;
+    font: 10pt Verdana, Geneva, Arial, Helvetica, sans-serif;
+    color: black;
+    margin-bottom: 10px;
+}
+ 
+table td{
+    font-size: 12px;
+    padding-left: 0px;
+    padding-right: 20px;
+    text-align: right;
+}
+ 
+table th {
+    font-size: 12px;
+    font-weight: bold;
+    padding-left: 0px;
+    padding-right: 20px;
+    text-align: left;
+}
+
+p {
+  font-size: 10px;
+  font-weight: bold;
+}
+
+pre{
+  font-size: 8px;
+}
+-->
+</style>
+"@
+
+$script:Html += '<p>Note: Mounted VSS snapshots are excluded from this report</p>'
+
+if($AllExchangeServer) {
+
+  # Fetch all Exchange Servers except Edge-Transport-Systems
+  $servers = Get-ExchangeServer | where {$_.ServerRole -ne "Edge"}| Sort-Object -Property Name 
+
+  foreach($server in $servers) {
+
+    $output = Get-DiskspaceFromComputer -ServerName $server.Name 
+  
+    if(!($SendMail)) { $output | Format-Table -AutoSize } 
+  }
+}
+else {
+
+  $output = Get-DiskspaceFromComputer -ServerName $ComputerName
+
+  if(!($SendMail)) { $output | Format-Table -AutoSize } 
+}
+
+if($SendMail) {
+  [string]$Body = ConvertTo-Html -Body $script:Html -Title 'Status' -Head $head -Postcontent ('<pre>Script version: {0}</pre>' -f $scriptVersion)
+
+  Send-MailMessage -From $MailFrom -To $Mailto -SmtpServer $MailServer -Body $Body -BodyAsHtml -Subject $ReportTitle
+
+  Write-Output ('Email sent to {0}' -f ($MailTo))
+}
