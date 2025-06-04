@@ -8,7 +8,7 @@ It is particularly useful for counting custom forms in public folders in an Exch
 You must have the Exchange Management Shell or the Exchange Online PowerShell module installed to run this script.
 
 .LINK
-https://scripts.granikos.eu
+https://granikos.eu/go/ZtsJ
 
 .PARAMETER PublicFolderPath
 The path to the public folder from which to retrieve items.
