@@ -169,13 +169,13 @@ Based on the original 1.6.2 version by Steve Goodman.
 
 ### Stay connected
 
-- My Blog: [https://blog.granikos.eu](https://blog.granikos.eu)
-- Bluesky: [https://bsky.app/profile/stensitzki.bsky.social](https://bsky.app/profile/stensitzki.bsky.social)
-- LinkedIn: [https://www.linkedin.com/in/thomasstensitzki](https://www.linkedin.com/in/thomasstensitzki)
-- YouTube: [https://www.youtube.com/@ThomasStensitzki](https://www.youtube.com/@ThomasStensitzki)
-- LinkTree: [https://linktr.ee/stensitzki](https://linktr.ee/stensitzki)
+* Blog: [https://blog.granikos.eu](https://blog.granikos.eu)
+* Bluesky: [https://bsky.app/profile/stensitzki.eu](https://bsky.app/profile/stensitzki.eu)
+* LinkedIn: [https://www.linkedin.com/in/thomasstensitzki](https://www.linkedin.com/in/thomasstensitzki)
+* YouTube: [https://www.youtube.com/@ThomasStensitzki](https://www.youtube.com/@ThomasStensitzki)
+* LinkTree: [https://linktr.ee/stensitzki](https://linktr.ee/stensitzki)
 
-For more Office 365, Cloud Security, and Exchange Server stuff checkout services provided by Granikos
+For more Microsoft 365, Cloud Security, and Exchange Server stuff checkout services provided by Granikos
 
-- Website: [https://granikos.eu](https://www.granikos)
-- Bluesky: [https://bsky.app/profile/granikos.bsky.social](https://bsky.app/profile/granikos.bsky.social)
+* Website: [https://granikos.eu](https://www.granikos.eu)
+* Bluesky: [https://bsky.app/profile/granikos.eu](https://bsky.app/profile/granikos.eu)

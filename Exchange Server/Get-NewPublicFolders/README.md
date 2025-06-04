@@ -45,13 +45,13 @@ Written by: Thomas Stensitzki
 
 ### Stay connected
 
-- My Blog: [https://blog.granikos.eu](https://blog.granikos.eu)
-- Bluesky: [https://bsky.app/profile/stensitzki.bsky.social](https://bsky.app/profile/stensitzki.bsky.social)
+- Blog: [https://blog.granikos.eu](https://blog.granikos.eu)
+- Bluesky: [https://bsky.app/profile/stensitzki.eu](https://bsky.app/profile/stensitzki.eu)
 - LinkedIn: [https://www.linkedin.com/in/thomasstensitzki](https://www.linkedin.com/in/thomasstensitzki)
 - YouTube: [https://www.youtube.com/@ThomasStensitzki](https://www.youtube.com/@ThomasStensitzki)
 - LinkTree: [https://linktr.ee/stensitzki](https://linktr.ee/stensitzki)
 
-For more Office 365, Cloud Security, and Exchange Server stuff checkout services provided by Granikos
+For more Microsoft 365, Cloud Security, and Exchange Server stuff checkout services provided by Granikos
 
-- Website: [https://www.granikos.eu/en/](https://www.granikos.eu/en/)
-- Bluesky: [https://bsky.app/profile/granikos.bsky.social](https://bsky.app/profile/granikos.bsky.social)
+- Website: [https://granikos.eu](https://www.granikos.eu)
+- Bluesky: [https://bsky.app/profile/granikos.eu](https://bsky.app/profile/granikos.eu)

@@ -19,7 +19,7 @@ Adjust this parameter to specify the item type you are interested in.
 You can find the form names by using the `Get-PublicFolderItemStatistics` cmdlet.
 
 .EXAMPLE
-Get-PublicFolderCustomFormItems.ps1 -PublicFolderPath '\Department\HR' -ItemType 'IPM.Post.FORMNAME'
+.\Get-PublicFolderCustomFormItems.ps1 -PublicFolderPath '\Department\HR' -ItemType 'IPM.Post.FORMNAME'
 
 Retrieves all public folders under '\Department\HR', counts the items of type 'IPM.Post.FORMNAME' in each folder, and exports the results to a CSV file. Adjust the name of the item type as needed.
 #>
