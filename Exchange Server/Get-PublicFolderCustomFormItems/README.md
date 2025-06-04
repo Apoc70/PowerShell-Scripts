@@ -47,5 +47,5 @@ Written by: Thomas Stensitzki
 
 For more Microsoft 365, Cloud Security, and Exchange Server stuff checkout services provided by Granikos
 
-* Website: [https://granikos.eu](https://www.granikos.eu)
+* Website: [https://granikos.eu](https://granikos.eu)
 * Bluesky: [https://bsky.app/profile/granikos.eu](https://bsky.app/profile/granikos.eu)

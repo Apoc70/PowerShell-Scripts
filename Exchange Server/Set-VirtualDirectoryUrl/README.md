@@ -52,3 +52,16 @@ The internal url FQDN with leading protocol definition, ie. https://mobile.mcsme
 
 Configure internal and external url for different host headers
 .\Set-VirtualDirectoryUrl -InternalUrl https://internal.mcsmemail.de -ExternalUrl https://mobile.mcsmemail.de
+
+# Stay connected
+
+* Blog: [https://blog.granikos.eu](https://blog.granikos.eu)
+* Bluesky: [https://bsky.app/profile/stensitzki.eu](https://bsky.app/profile/stensitzki.eu)
+* LinkedIn: [https://www.linkedin.com/in/thomasstensitzki](https://www.linkedin.com/in/thomasstensitzki)
+* YouTube: [https://www.youtube.com/@ThomasStensitzki](https://www.youtube.com/@ThomasStensitzki)
+* LinkTree: [https://linktr.ee/stensitzki](https://linktr.ee/stensitzki)
+
+For more Microsoft 365, Cloud Security, and Exchange Server stuff checkout services provided by Granikos
+
+* Website: [https://granikos.eu](https://granikos.eu)
+* Bluesky: [https://bsky.app/profile/granikos.eu](https://bsky.app/profile/granikos.eu)
