@@ -22,7 +22,7 @@
     SOFTWARE
 #>
 
-# Version 2.7.6, 2025-05-30
+# Version 2.7.5, 2025-02-02
 
 <#
     .SYNOPSIS
@@ -178,7 +178,7 @@ $MinFreeDiskspace = 30 # Mark free space less than this value (%) in red
 $MaxDatabaseSize = 250 # Mark database larger than this value (GB) in red
 
 # Version
-$ScriptVersion = '2.7.6'
+$ScriptVersion = '2.7.5'
 
 # Default variables
 $NotAvailable = 'N/A'
@@ -390,6 +390,24 @@ function Get-ExchangeServerMailboxCount {
 
 }
 
+# New in 3.0
+function Get-ExchangeServerArchiveMailboxCount {
+  [CmdletBinding()]
+  param(
+    $Mailboxes,
+    $ExchangeServer,
+    $Databases
+  )
+  $ArchiveMailboxCount = 0
+
+  foreach ($Database in [array]($Databases | Where-Object { $_.Server -eq $ExchangeServer.Name })) {
+    $ArchiveMailboxCount += ([array]($Mailboxes | Where-Object { $_.ArchiveDatabase -eq $Database.Identity })).Count
+  }
+
+  $ArchiveMailboxCount
+
+}
+
 # 2021-12-23 Function added to handle empty virtual directory hostname strings (Issue #9)
 function Test-vDirHost {
   [CmdletBinding()]
@@ -419,6 +437,7 @@ function Get-ExchangeServerInformation {
 
   # Set Basic Variables
   $MailboxCount = 0
+  $ArchiveMailboxCount = 0 # new 3.0
   $RollupLevel = 0
   $RollupVersion = ''
   $ExtNames = @()
@@ -461,6 +480,10 @@ function Get-ExchangeServerInformation {
     $ExchangeMajorVersion = [double]('{0}.{1}' -f $ExchangeServer.AdminDisplayVersion.Major, $ExchangeServer.AdminDisplayVersion.Minor)
     $ExchangeSPLevel = $ExchangeServer.AdminDisplayVersion.FilePatchLevelDescription.Replace('Service Pack ', '')
   }
+  elseif (($ExchangeServer.AdminDisplayVersion.Major -eq 15) -and ($ExchangeServer.AdminDisplayVersion.Minor -eq 2) -and ($ExchangeServer.AdminDisplayVersion.Build -ge 2562) ) {
+    $ExchangeMajorVersion = [double]('{0}.{1}' -f $ExchangeServer.AdminDisplayVersion.Major, (([Double]($ExchangeServer.AdminDisplayVersion.Minor))+1) )
+    $ExchangeSPLevel = 0
+  }
   elseif ($ExchangeServer.AdminDisplayVersion.Major -eq 15 -and $ExchangeServer.AdminDisplayVersion.Minor -ge 1) {
     $ExchangeMajorVersion = [double]('{0}.{1}' -f $ExchangeServer.AdminDisplayVersion.Major, $ExchangeServer.AdminDisplayVersion.Minor)
     $ExchangeSPLevel = 0
@@ -469,6 +492,9 @@ function Get-ExchangeServerInformation {
     $ExchangeMajorVersion = $ExchangeServer.AdminDisplayVersion.Major
     $ExchangeSPLevel = $ExchangeServer.AdminDisplayVersion.Minor
   }
+
+  Write-host ('{0}.{1}.{2}' -f $ExchangeServer.AdminDisplayVersion.Major, $ExchangeServer.AdminDisplayVersion.Minor, $ExchangeServer.AdminDisplayVersion.Build)
+  Write-host ('ExchangeMajorVersion: {0}' -f $ExchangeMajorVersion)
 
   # Exchange 2007+
   if ($ExchangeMajorVersion -ge 8) {
@@ -484,6 +510,9 @@ function Get-ExchangeServerInformation {
     if ($Roles -contains 'Mailbox') {
 
       $MailboxCount = Get-ExchangeServerMailboxCount -Mailboxes $Mailboxes -ExchangeServer $ExchangeServer -Databases $Databases
+
+      $ArchiveMailboxCount = Get-ExchangeServerArchiveMailboxCount -Mailboxes $Mailboxes -ExchangeServer $ExchangeServer -Databases $Databases # new 3.0
+
       if ($ExchangeServer.Name.ToUpper() -ne $RealName) {
         $Roles = [array]($Roles | Where-Object { $_ -ne 'Mailbox' })
         $Roles += 'ClusteredMailbox'
@@ -566,8 +595,8 @@ function Get-ExchangeServerInformation {
     # Rollup Level / Versions
     # Thanks to Bhargav Shukla https://bhargavs.com/index.php/2009/12/14/how-do-i-check-update-rollup-version-on-exchange-20xx-server/
     switch ([string]$ExchangeMajorVersion) {
-      # Exchange Server 2016 / 2019
-      '15.2' { $RegKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\S-1-5-18\\Products\\442189DC8B9EA5040962A6BED9EC1F1F\\Patches" }
+      # Exchange Server 2016 / 2019 / SE
+      {'15.2','15.3'} { $RegKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\S-1-5-18\\Products\\442189DC8B9EA5040962A6BED9EC1F1F\\Patches" }
       '15.1' { $RegKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\S-1-5-18\\Products\\442189DC8B9EA5040962A6BED9EC1F1F\\Patches" }
       # Exchange Server 2010 / 2013
       '15' { $RegKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\S-1-5-18\\Products\\AE1D439464EB1B8488741FFA028E291C\\Patches" }
@@ -623,6 +652,7 @@ function Get-ExchangeServerInformation {
           $ExchangeSPLevel = $ExchangeSPLevel.Replace('Microsoft Exchange Server 2013 ', '')
           $ExchangeSPLevel = $ExchangeSPLevel.Replace('Microsoft Exchange Server 2016 ', '')
           $ExchangeSPLevel = $ExchangeSPLevel.Replace('Microsoft Exchange Server 2019 ', '')
+          $ExchangeSPLevel = $ExchangeSPLevel.Replace('Microsoft Exchange Server Subscription Edition ', '')
           $ExchangeSPLevel = $ExchangeSPLevel.Replace('Service Pack ', 'SP')
           $ExchangeSPLevel = $ExchangeSPLevel.Replace('Cumulative Update ', 'CU')
         }
@@ -699,6 +729,7 @@ function Get-ExchangeServerInformation {
     ExchangeSPLevel           = $ExchangeSPLevel
     Edition                   = $ExchangeServer.Edition
     Mailboxes                 = $MailboxCount
+    ArchiveMailboxes          = $ArchiveMailboxCount
     OSVersion                 = $OSVersion
     OSServicePack             = $OSServicePack
     Roles                     = $Roles
@@ -935,7 +966,8 @@ function Get-HtmlOverview {
       }
 
       if (($_.Key -eq 'ClusteredMailbox' -or $_.Key -eq 'Mailbox' -or $_.Key -eq 'BE') -and $Server.Roles -contains $_.Key) {
-        $Output += ('{0}</td>' -f $Server.Mailboxes)
+        # $Output += ('<div class="tooltip">{0}<span class="tooltiptext">{0} mailbox(es)</span></div>/{1}</td>' -f $Server.Mailboxes, $Server.ArchiveMailboxes) # add archive mailbox count
+        $Output += ('{0}/{1}</td>' -f $Server.Mailboxes, $Server.ArchiveMailboxes) # add archive mailbox count
       }
     }
 
@@ -1174,7 +1206,7 @@ function Get-HtmlDatabaseInformationTable {
   $StopWatch.Stop()
 
   if($ShowRunTime) {
-    $Output += ("<p class='dagtablefooter'>Run time: {0:0}m:{1:0}s</p>" -f $s.Elapsed.TotalMinutes, (($s.Elapsed.TotalSeconds)-([math]::Round($s.Elapsed.TotalMinutes)*60)) )
+    $Output += ("<p class='dagtablefooter'>Run time: {0:0}m {1:0}s</p>" -f $StopWatch.Elapsed.TotalMinutes, ( [math]::Round($StopWatch.Elapsed.TotalSeconds)-([math]::Round($StopWatch.Elapsed.TotalMinutes)*60) ) )
   }
 
   $Output
@@ -1221,7 +1253,9 @@ function Get-HtmlReportHeader {
   <tr class='subheader'>" -f $ExchangeEnvironment.TotalServersByRole.Count, $LabelTotalRoles)
 
   # Show Column Headings based on the Exchange versions we have
+  # Total Servers
   $ExchangeEnvironment.TotalMailboxesByVersion.GetEnumerator() | Sort-Object -Property Name | ForEach-Object { $Output += "<th class='subheader'>$($ExVersionStrings[$_.Key].Short)</th>" }
+  # By Exchange Version
   $ExchangeEnvironment.TotalMailboxesByVersion.GetEnumerator() | Sort-Object -Property Name | ForEach-Object { $Output += "<th class='subheader'>$($ExVersionStrings[$_.Key].Short)</th>" }
 
   if ($ExchangeEnvironment.RemoteMailboxes) {
@@ -1382,13 +1416,14 @@ $ExchangeEnvironment = @{
 
 # 1.5.7 Exchange Major Version String Mapping
 $ExMajorVersionStrings = @{
-  '6.0'  = @{Long = 'Exchange 2000'; Short = 'E2000' }
-  '6.5'  = @{Long = 'Exchange 2003'; Short = 'E2003' }
-  '8'    = @{Long = 'Exchange 2007'; Short = 'E2007' }
-  '14'   = @{Long = 'Exchange 2010'; Short = 'E2010' }
-  '15'   = @{Long = 'Exchange 2013'; Short = 'E2013' }
-  '15.1' = @{Long = 'Exchange 2016'; Short = 'E2016' }
-  '15.2' = @{Long = 'Exchange 2019'; Short = 'E2019' } #2019-05-17 TST Exchange Server 2019 added
+  '6.0'     = @{Long = 'Exchange 2000'; Short = 'E2000' }
+  '6.5'     = @{Long = 'Exchange 2003'; Short = 'E2003' }
+  '8'       = @{Long = 'Exchange 2007'; Short = 'E2007' }
+  '14'      = @{Long = 'Exchange 2010'; Short = 'E2010' }
+  '15'      = @{Long = 'Exchange 2013'; Short = 'E2013' }
+  '15.1'    = @{Long = 'Exchange 2016'; Short = 'E2016' }
+  '15.2'    = @{Long = 'Exchange 2019'; Short = 'E2019' } #2019-05-17 TST Exchange Server 2019 added
+  '15.3'  = @{Long = 'Exchange SE'; Short = 'SE ' } #2025-05-19 TST Exchange Server SE added
 }
 
 # 1.5.8 Exchange Service Pack String Mapping
@@ -1410,17 +1445,17 @@ for ($i = 1; $i -le 40; $i++) {
 # Security Update Mapping
 # 2024-01-16 TST Security Update Mapping added
 $ExSUString = @{
+  # Exchange Server SE
+  
   # Exchange 2019 CU15
-  '15.2.1748.26' = 'May25HU' #v2.7.6
   '15.2.1748.24' = 'Apr25HU' #v2.7.5
 
   # Exchange 2019 CU14
-  '15.2.1544.27' = 'May25HU' #v2.7.6
   '15.2.1544.25' = 'Apr25HU' #v2.7.5
   '15.2.1544.14' = 'Nov24SUv2' #v2.7.4
   '15.2.1544.13' = 'Nov24SU'
   '15.2.1544.11' = 'Apr24HU'
-  '15.2.1544.9' = 'Mar24SU'
+  '15.2.1544.9'  = 'Mar24SU'
 
   # Exchange 2019 CU13
   '15.2.1258.38' = 'Nov24SU'
@@ -1446,7 +1481,6 @@ $ExSUString = @{
   '15.2.1118.9'  = 'Mar22SU'
 
   # Exchange 2016 CU23
-  '15.1.2507.57' = 'May25HU' #v2.7.6
   '15.1.2507.55' = 'Apr25HU' #v2.7.5
   '15.1.2507.44' = 'Nov24SUv2' #v2.7.4
   '15.1.2507.43' = 'Nov24SU'
@@ -1469,6 +1503,8 @@ foreach ($Major in $ExMajorVersionStrings.GetEnumerator()) {
     $ExVersionStrings.Add("$($Major.Key).$($Minor.Key)", @{Long = "$($Major.Value.Long) $($Minor.Value)"; Short = "$($Major.Value.Short)$($Minor.Value)" })
   }
 }
+
+Write-Verbose $ExMajorVersionStrings
 
 # 1.5.10 Exchange Role String Mapping
 $ExRoleStrings = @{
