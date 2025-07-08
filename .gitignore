@@ -1,4 +1,6 @@
 customer*.*
 secrect*.*
+test*.*
+dev*.*
 **/logs/*
 
