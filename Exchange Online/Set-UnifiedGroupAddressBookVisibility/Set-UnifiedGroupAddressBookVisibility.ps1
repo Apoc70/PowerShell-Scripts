@@ -15,15 +15,23 @@
     Requirements 
 
     - Windows Server 2019+
+    - Exchange Online PowerShell V3 module
+    - GlobalFunctions PowerShell module
+    - Entra ID application with certificate-based authentication
   
+    Version 1.0, 2025-07-08
+    
     Revision History 
     -------------------------------------------------------------------------------- 
     1.0 Initial release 
 
     .LINK
 
-    https://somelink1.com/withmoreinformation
+    https://scripts.granikos.eu
 
+    .PARAMETER SettingsFile
+
+    Path to the Entra settings file for app-based authentication.
 
 
 #>
@@ -34,7 +42,7 @@
 param(
     [Parameter(
         Mandatory = $true,
-        HelpMessage = "Paht to the Entra settings fiel for app-based authentication")]
+        HelpMessage = "Path to the Entra settings file for app-based authentication")]
     [ValidateNotNull()]
     [string]$SettingsFile
 )
@@ -60,6 +68,7 @@ else {
 
 # Create a logging oobject
 $logger = New-Logger -ScriptRoot $script:ScriptPath -ScriptName $script:ScriptName -LogFileRetention 14
+# purge old log files
 $logger.Purge()
 $logger.Write('Script started')
 
@@ -84,6 +93,7 @@ function LoadScriptSettings {
             $config = Get-Content -Path $configFilePath | ConvertFrom-Json
             # Extract configuration values
             $script:tenantId = $config.tenantid
+            $script:organizationName = $config.organizationname
             $script:clientid = $config.ClientId
             $script:certThumbprint = $config.CertThumbprint
         }
@@ -137,7 +147,35 @@ function Request-Choice {
 # 1. Load script settings
 LoadScriptSettings
 
-Write-Host ('Connecting to Exchange Online tenant {0}' -f $script:tenantId)
+# 2. Connect to Exchange Online using the Entra ID application
+Write-Host ('Connecting to Exchange Online tenant {0}' -f $script:organizationName)
+
+Connect-ExchangeOnline -Organization $script:organizationName -AppId $script:clientid -CertificateThumbprint $script:certThumbprint
+Write-Verbose -Message ('Connected to Exchange Online tenant {0}' -f $script:organizationName)
+
+# 3. Get all unified groups
+Write-Host 'Retrieving all unified groups...'  
+$unifiedGroups = Get-UnifiedGroup -ResultSize Unlimited
+Write-Verbose -Message ('Retrieved {0} unified groups' -f $unifiedGroups.Count)
+
+# 4. Set address book visibility for each unified group
+Write-Host 'Setting address book visibility for each unified group...'  
+foreach ($group in $unifiedGroups) {
+    Write-Verbose -Message ('Processing group {0} ({1})' -f $group.DisplayName, $group.PrimarySmtpAddress)
+
+    # Check if the group is already set to hidden from address book
+    if ($group.HiddenFromAddressListsEnabled -eq $false) {
+        Write-Host ('Setting address book visibility for group {0} ({1}) to hidden' -f $group.DisplayName, $group.PrimarySmtpAddress)
+        Set-UnifiedGroup -Identity $group.Identity -HiddenFromAddressListsEnabled $true
+        # Log the change
+        $logger.Write(('Set address book visibility for group {0} ({1}) to hidden' -f $group.DisplayName, $group.PrimarySmtpAddress))
+        Write-Verbose -Message ('Set address book visibility for group {0} ({1}) to hidden' -f $group.DisplayName, $group.PrimarySmtpAddress)
+    }
+    else {
+        Write-Host ('Group {0} ({1}) is already hidden from address book' -f $group.DisplayName, $group.PrimarySmtpAddress)
+    }
+}
+
 
 #endregion
 
