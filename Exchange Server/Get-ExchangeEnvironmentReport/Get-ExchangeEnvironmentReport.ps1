@@ -22,7 +22,7 @@
     SOFTWARE
 #>
 
-# Version 2.7.5, 2025-02-02
+# Version 2.7.6, 2025-08-13
 
 <#
     .SYNOPSIS
@@ -178,7 +178,7 @@ $MinFreeDiskspace = 30 # Mark free space less than this value (%) in red
 $MaxDatabaseSize = 250 # Mark database larger than this value (GB) in red
 
 # Version
-$ScriptVersion = '2.7.5'
+$ScriptVersion = '2.7.6'
 
 # Default variables
 $NotAvailable = 'N/A'
@@ -481,7 +481,7 @@ function Get-ExchangeServerInformation {
     $ExchangeSPLevel = $ExchangeServer.AdminDisplayVersion.FilePatchLevelDescription.Replace('Service Pack ', '')
   }
   elseif (($ExchangeServer.AdminDisplayVersion.Major -eq 15) -and ($ExchangeServer.AdminDisplayVersion.Minor -eq 2) -and ($ExchangeServer.AdminDisplayVersion.Build -ge 2562) ) {
-    $ExchangeMajorVersion = [double]('{0}.{1}' -f $ExchangeServer.AdminDisplayVersion.Major, (([Double]($ExchangeServer.AdminDisplayVersion.Minor))+1) )
+    $ExchangeMajorVersion = [double]('{0}.{1}' -f $ExchangeServer.AdminDisplayVersion.Major, (([Double]($ExchangeServer.AdminDisplayVersion.Minor))+1) ) # dirty trick so separate 2019 fro SE while both are 15.2.x
     $ExchangeSPLevel = 0
   }
   elseif ($ExchangeServer.AdminDisplayVersion.Major -eq 15 -and $ExchangeServer.AdminDisplayVersion.Minor -ge 1) {
@@ -493,8 +493,8 @@ function Get-ExchangeServerInformation {
     $ExchangeSPLevel = $ExchangeServer.AdminDisplayVersion.Minor
   }
 
-  Write-host ('{0}.{1}.{2}' -f $ExchangeServer.AdminDisplayVersion.Major, $ExchangeServer.AdminDisplayVersion.Minor, $ExchangeServer.AdminDisplayVersion.Build)
-  Write-host ('ExchangeMajorVersion: {0}' -f $ExchangeMajorVersion)
+  #Write-host ('{0}.{1}.{2}' -f $ExchangeServer.AdminDisplayVersion.Major, $ExchangeServer.AdminDisplayVersion.Minor, $ExchangeServer.AdminDisplayVersion.Build)
+  #Write-host ('ExchangeMajorVersion: {0}' -f $ExchangeMajorVersion)
 
   # Exchange 2007+
   if ($ExchangeMajorVersion -ge 8) {
@@ -1446,11 +1446,17 @@ for ($i = 1; $i -le 40; $i++) {
 # 2024-01-16 TST Security Update Mapping added
 $ExSUString = @{
   # Exchange Server SE
-  
+  '15.2.2562.20' = 'Aug25SU' #v2.7.6
+
+
   # Exchange 2019 CU15
+  '15.2.1748.36' = 'Aug25SU' #v2.7.6
+  '15.2.1748.26' = 'May25HU' #v2.7.6
   '15.2.1748.24' = 'Apr25HU' #v2.7.5
 
   # Exchange 2019 CU14
+  '15.2.1544.33' = 'Aug25SU' #v2.7.6
+  '15.2.1544.27' = 'May25HU' #v2.7.6
   '15.2.1544.25' = 'Apr25HU' #v2.7.5
   '15.2.1544.14' = 'Nov24SUv2' #v2.7.4
   '15.2.1544.13' = 'Nov24SU'
@@ -1481,6 +1487,8 @@ $ExSUString = @{
   '15.2.1118.9'  = 'Mar22SU'
 
   # Exchange 2016 CU23
+  '15.1.2507.58' = 'Aug25SU' #v2.7.6
+  '15.1.2507.57' = 'May25HU' #v2.7.6
   '15.1.2507.55' = 'Apr25HU' #v2.7.5
   '15.1.2507.44' = 'Nov24SUv2' #v2.7.4
   '15.1.2507.43' = 'Nov24SU'
