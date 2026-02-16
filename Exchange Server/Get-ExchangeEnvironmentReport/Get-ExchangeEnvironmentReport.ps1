@@ -178,7 +178,7 @@ $MinFreeDiskspace = 30 # Mark free space less than this value (%) in red
 $MaxDatabaseSize = 250 # Mark database larger than this value (GB) in red
 
 # Version
-$ScriptVersion = '2.7.9'
+$ScriptVersion = '2.7.10'
 
 # Default variables
 $NotAvailable = 'N/A'
@@ -299,7 +299,7 @@ function Get-DatabaseInformation {
     }
 
     # Disconnected Mailbox, v2.7
-    $DisconnectedMailboxCount = ( (Get-MailboxStatistics -Database $Database.Name | where {$_.DisconnectReason -eq 'SoftDeleted'}) | Measure-Object).Count
+    $DisconnectedMailboxCount = ( (Get-MailboxStatistics -Database $Database.Name | Where-Object {$_.DisconnectReason -eq 'SoftDeleted'}) | Measure-Object).Count
 
     # Database Provisioning Status, v.2.7.1
     $IsExcludedFromProvisioning = $Database.IsExcludedFromProvisioning
