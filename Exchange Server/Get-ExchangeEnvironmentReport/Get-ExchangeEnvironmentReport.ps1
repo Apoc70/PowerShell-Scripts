@@ -22,7 +22,7 @@
     SOFTWARE
 #>
 
-# Version 2.7.12, 2026-06-10
+# Version 2.7.13, 2026-06-10
 
 <#
     .SYNOPSIS
@@ -178,7 +178,7 @@ $MinFreeDiskspace = 30 # Mark free space less than this value (%) in red
 $MaxDatabaseSize = 250 # Mark database larger than this value (GB) in red
 
 # Version
-$ScriptVersion = '2.7.12'
+$ScriptVersion = '2.7.13'
 
 # Default variables
 $NotAvailable = 'N/A'
@@ -1446,6 +1446,8 @@ for ($i = 1; $i -le 40; $i++) {
 # 2024-01-16 TST Security Update Mapping added
 $ExSUString = @{
   # Exchange Server SE
+  '15.2.2562.46' = 'Aug26SU' #v2.7.13
+  '15.2.2562.45' = 'Jul26SU' #v2.7.13
   '15.2.2562.43' = 'Jun26SU' #v2.7.12
   '15.2.2562.41' = 'May26HU' #v2.7.11 
   '15.2.2562.37' = 'Feb26SU' #v2.7.10
@@ -1456,6 +1458,9 @@ $ExSUString = @{
 
 
   # Exchange 2019 CU15
+  '15.2.1748.49' = 'Aug26SU' #v2.7.13
+  '15.2.1748.48' = 'Jul26SU' #v2.7.13
+  '15.2.1748.46' = 'Jun26SU' #v2.7.13
   '15.2.1748.43' = 'Feb26SU' #v2.7.10
   '15.2.1748.42' = 'Dec25SU' #v2.7.9
   '15.2.1748.39' = 'Oct25SU' #v2.7.8
@@ -1465,6 +1470,9 @@ $ExSUString = @{
   '15.2.1748.24' = 'Apr25HU' #v2.7.5
 
   # Exchange 2019 CU14
+  '15.2.1544.44' = 'Aug26SU' #v2.7.13
+  '15.2.1544.43' = 'Jul26SU' #v2.7.13
+  '15.2.1544.41' = 'Jun26SU' #v2.7.13
   '15.2.1544.39' = 'Feb26SU' #v2.7.10
   '15.2.1544.37' = 'Dec25SU' #v2.7.9
   '15.2.1544.36' = 'Oct25SU' #v2.7.8
@@ -1501,6 +1509,9 @@ $ExSUString = @{
   '15.2.1118.9'  = 'Mar22SU'
 
   # Exchange 2016 CU23
+  '15.1.2507.72' = 'Aug26SU' #v2.7.13
+  '15.1.2507.71' = 'Jul26SU' #v2.7.13
+  '15.1.2507.69' = 'Jun26SU' #v2.7.13
   '15.1.2507.66' = 'Feb26SU' #v2.7.10
   '15.1.2507.63' = 'Dec25SU' #v2.7.9
   '15.1.2507.61' = 'Oct25SU' #v2.7.8
