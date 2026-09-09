@@ -63,7 +63,7 @@ else {
     Write-Warning -Message 'Unable to load GlobalFunctions PowerShell module.'
     Write-Warning -Message 'Open an administrative PowerShell session and run Import-Module GlobalFunctions'
     Write-Warning -Message 'Please check http://bit.ly/GlobalFunctions for further instructions'
-    exit
+    exit 666
 }
 
 # Create a logging oobject
@@ -80,7 +80,7 @@ $logger.Write('Script started')
     Load script settings from dedicated settings.jsan 
     The settings file should contain the following properties:
     - tenantid: The tenant ID for the Entra ID application
-    - clientid: The client ID of the Entra ID application
+    - clientid: The client ID (app ID) of the Entra ID application
     - certThumbprint: The thumbprint of the certificate used for authentication
 #>
 function LoadScriptSettings {
@@ -166,7 +166,7 @@ foreach ($group in $unifiedGroups) {
     # Check if the group is already set to hidden from address book
     if ($group.HiddenFromAddressListsEnabled -eq $false) {
         Write-Host ('Setting address book visibility for group {0} ({1}) to hidden' -f $group.DisplayName, $group.PrimarySmtpAddress)
-        Set-UnifiedGroup -Identity $group.Identity -HiddenFromAddressListsEnabled $true
+        Set-UnifiedGroup -Identity $group.Identity -HiddenFromAddressListsEnabled $true 
         # Log the change
         $logger.Write(('Set address book visibility for group {0} ({1}) to hidden' -f $group.DisplayName, $group.PrimarySmtpAddress))
         Write-Verbose -Message ('Set address book visibility for group {0} ({1}) to hidden' -f $group.DisplayName, $group.PrimarySmtpAddress)
