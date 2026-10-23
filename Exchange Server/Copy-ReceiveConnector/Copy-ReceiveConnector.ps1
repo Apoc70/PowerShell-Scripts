@@ -188,7 +188,7 @@ function Copy-ToServer {
       New-ReceiveConnector -Name $sourceRC.Name `
       -TransportRole $sourceRC.TransportRole `
       -RemoteIPRanges @($sourceRC.RemoteIPRanges | %{ $_.Expression }) `
-      -Bindings $sourceRC.Bindings `
+      -Bindings @($sourceRC.Bindings | %{ "$_" }) `
       -Banner $sourceRC.Banner `
       -ChunkingEnabled $sourceRC.ChunkingEnabled `
       -DefaultDomain $sourceRC.DefaultDomain `
@@ -199,18 +199,18 @@ function Copy-ToServer {
       -OrarEnabled $sourceRC.OrarEnabled `
       -Comment $sourceRC.Comment `
       -Enabled $sourceRC.Enabled `
-      -ConnectionTimeout $sourceRC.ConnectionTimeout `
-      -ConnectionInactivityTimeout $sourceRC.ConnectionInactivityTimeout `
-      -MessageRateLimit $sourceRC.MessageRateLimit `
-      -MaxInboundConnection $sourceRC.MaxInboundConnection `
-      -MaxInboundConnectionPerSource $sourceRC.MaxInboundConnectionPerSource `
+      -ConnectionTimeout "$($sourceRC.ConnectionTimeout)" `
+      -ConnectionInactivityTimeout "$($sourceRC.ConnectionInactivityTimeout)" `
+      -MessageRateLimit "$($sourceRC.MessageRateLimit)" `
+      -MaxInboundConnection "$($sourceRC.MaxInboundConnection)" `
+      -MaxInboundConnectionPerSource "$($sourceRC.MaxInboundConnectionPerSource)" `
       -MaxInboundConnectionPercentagePerSource $sourceRC.MaxInboundConnectionPercentagePerSource `
-      -MaxHeaderSize $sourceRC.MaxHeaderSize `
+      -MaxHeaderSize "$($sourceRC.MaxHeaderSize)" `
       -MaxHopCount $sourceRC.MaxHopCount `
       -MaxLocalHopCount $sourceRC.MaxLocalHopCount `
       -MaxLogonFailures $sourceRC.MaxLogonFailures `
-      -MaxMessageSize $sourceRC.MaxMessageSize `
-      -MaxProtocolErrors $sourceRC.MaxProtocolErrors `
+      -MaxMessageSize "$($sourceRC.MaxMessageSize)" `
+      -MaxProtocolErrors "$($sourceRC.MaxProtocolErrors)" `
       -MaxRecipientsPerMessage $sourceRC.MaxRecipientsPerMessage `
       -PermissionGroups $sourceRC.PermissionGroups `
       -PipeliningEnabled $sourceRC.PipeLiningEnabled `
@@ -220,7 +220,7 @@ function Copy-ToServer {
       -EnableAuthGSSAPI $sourceRC.EnableAuthGSSAPI `
       -ExtendedProtectionPolicy $sourceRC.ExtendedProtectionPolicy `
       -SizeEnabled $sourceRC.SizeEnabled `
-      -TarpitInterval $sourceRC.TarpitInterval `
+      -TarpitInterval "$($sourceRC.TarpitInterval)" `
       -EnhancedStatusCodesEnabled  $sourceRC.EnhancedStatusCodesEnabled `
       -Server $TargetServerName `
       -AuthMechanism $sourceRC.AuthMechanism `
@@ -296,18 +296,18 @@ function Copy-ToServer {
         -OrarEnabled $sourceRC.OrarEnabled `
         -Comment $sourceRC.Comment `
         -Enabled $sourceRC.Enabled `
-        -ConnectionTimeout $sourceRC.ConnectionTimeout `
-        -ConnectionInactivityTimeout $sourceRC.ConnectionInactivityTimeout `
-        -MessageRateLimit $sourceRC.MessageRateLimit `
-        -MaxInboundConnection $sourceRC.MaxInboundConnection `
-        -MaxInboundConnectionPerSource $sourceRC.MaxInboundConnectionPerSource `
+        -ConnectionTimeout "$($sourceRC.ConnectionTimeout)" `
+        -ConnectionInactivityTimeout "$($sourceRC.ConnectionInactivityTimeout)" `
+        -MessageRateLimit "$($sourceRC.MessageRateLimit)" `
+        -MaxInboundConnection "$($sourceRC.MaxInboundConnection)" `
+        -MaxInboundConnectionPerSource "$($sourceRC.MaxInboundConnectionPerSource)" `
         -MaxInboundConnectionPercentagePerSource $sourceRC.MaxInboundConnectionPercentagePerSource `
-        -MaxHeaderSize $sourceRC.MaxHeaderSize `
+        -MaxHeaderSize "$($sourceRC.MaxHeaderSize)" `
         -MaxHopCount $sourceRC.MaxHopCount `
         -MaxLocalHopCount $sourceRC.MaxLocalHopCount `
         -MaxLogonFailures $sourceRC.MaxLogonFailures `
-        -MaxMessageSize $sourceRC.MaxMessageSize `
-        -MaxProtocolErrors $sourceRC.MaxProtocolErrors `
+        -MaxMessageSize "$($sourceRC.MaxMessageSize)" `
+        -MaxProtocolErrors "$($sourceRC.MaxProtocolErrors)" `
         -MaxRecipientsPerMessage $sourceRC.MaxRecipientsPerMessage `
         -PermissionGroups $sourceRC.PermissionGroups `
         -PipeliningEnabled $sourceRC.PipeLiningEnabled `
@@ -317,7 +317,7 @@ function Copy-ToServer {
         -EnableAuthGSSAPI $sourceRC.EnableAuthGSSAPI `
         -ExtendedProtectionPolicy $sourceRC.ExtendedProtectionPolicy `
         -SizeEnabled $sourceRC.SizeEnabled `
-        -TarpitInterval $sourceRC.TarpitInterval `
+        -TarpitInterval "$($sourceRC.TarpitInterval)" `
         -EnhancedStatusCodesEnabled  $sourceRC.EnhancedStatusCodesEnabled `
         -AuthMechanism $sourceRC.AuthMechanism `
         -Fqdn $TargetFqdn
