@@ -187,7 +187,7 @@ function Copy-ToServer {
       # create new Receive Connector
       New-ReceiveConnector -Name $sourceRC.Name `
       -TransportRole $sourceRC.TransportRole `
-      -RemoteIPRanges $sourceRC.RemoteIPRanges `
+      -RemoteIPRanges @($sourceRC.RemoteIPRanges | %{ $_.Expression }) `
       -Bindings $sourceRC.Bindings `
       -Banner $sourceRC.Banner `
       -ChunkingEnabled $sourceRC.ChunkingEnabled `
@@ -285,7 +285,7 @@ function Copy-ToServer {
         }
 
         Get-ReceiveConnector -Identity ('{0}\{1}' -f ($TargetServerName), $sourceRC.Name) | Set-ReceiveConnector `
-        -RemoteIPRanges $sourceRC.RemoteIPRanges `
+        -RemoteIPRanges @($sourceRC.RemoteIPRanges | %{ $_.Expression }) `
         -Banner $sourceRC.Banner `
         -ChunkingEnabled $sourceRC.ChunkingEnabled `
         -DefaultDomain $sourceRC.DefaultDomain `
