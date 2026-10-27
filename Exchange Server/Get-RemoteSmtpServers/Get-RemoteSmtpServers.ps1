@@ -42,6 +42,13 @@
   .PARAMETER LegacyExchange
   Search legacy Exchange servers (Exchange 2010) log file location
 
+  .PARAMETER PathEvaluation
+  Select path resolution mode. Static builds the default Exchange log path with locale-aware Program Files detection.
+  Dynamic queries Exchange transport services for each server's configured receive log path.
+
+  .PARAMETER AdminShare
+  Administrative volume share used for static path evaluation, for example c$ or d$
+
   .PARAMETER ToCsv
   Export search results to a single CSV file for all servers
 
@@ -64,6 +71,16 @@
 
   Search Exchange servers SMTP receive log files for the last 4 days and save search results in a single CSV file, with unique IP addresses only
 
+  .EXAMPLE
+  .\Get-RemoteSmtpServers.ps1 -Servers SRV01,SRV02 -PathEvaluation Static -AdminShare c$ -Backend -ToCsv
+
+  Search backend receive logs using a static path based on c$ and locale-aware Program Files folder detection
+
+  .EXAMPLE
+  .\Get-RemoteSmtpServers.ps1 -Servers SRV01,SRV02 -PathEvaluation Dynamic -ToCsvPerServer
+
+  Query each server for its configured receive log path and use the derived UNC path for log parsing
+
 
 #>
 
@@ -74,6 +91,10 @@ param(
   [string[]]$ServersToExclude = @('PP2054.PPSMTP.NET', 'PP3166.PPSMTP.NET'),
   [switch]$Backend,
   [switch]$LegacyExchange,
+  [ValidateSet('Static', 'Dynamic')]
+  [string]$PathEvaluation = 'Static',
+  [ValidatePattern('^[a-zA-Z]\$$')]
+  [string]$AdminShare = 'd$',
   [switch]$ToCsv,
   [switch]$ToCsvPerServer,
   [switch]$UniqueIPs,
@@ -87,9 +108,9 @@ $CsvFileName = Join-Path -Path $ScriptDir -ChildPath ('RemoteSMTPServers-%SERVER
 
 # ToDo: Update to Get-TransportServer/Get-TransportService
 # Currently pretty static
-$LegacyExchangePath = '\\%SERVER%\d$\Program Files\Microsoft\Exchange Server\V14\TransportRoles\Logs\ProtocolLog\SmtpReceive'
-$BackendPath = '\\%SERVER%\d$\Program Files\Microsoft\Exchange Server\V15\TransportRoles\Logs\Hub\ProtocolLog\SmtpReceive'
-$FrontendPath = '\\%SERVER%\d$\Program Files\Microsoft\Exchange Server\V15\TransportRoles\Logs\FrontEnd\ProtocolLog\SmtpReceive'
+$LegacyExchangeSubPath = 'Microsoft\Exchange Server\V14\TransportRoles\Logs\ProtocolLog\SmtpReceive'
+$BackendSubPath = 'Microsoft\Exchange Server\V15\TransportRoles\Logs\Hub\ProtocolLog\SmtpReceive'
+$FrontendSubPath = 'Microsoft\Exchange Server\V15\TransportRoles\Logs\FrontEnd\ProtocolLog\SmtpReceive'
 
 # Default Exchange Server Internal SMTP
 $InternalSmtp = 'SMTP.AVAILABILITY.CONTOSO.COM'
@@ -131,16 +152,132 @@ function Write-RemoteServers {
 
 }
 
-## MAIN ###########################################
-$LogPath = $FrontendPath
+function Get-StaticProgramFilesFolderName {
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Server,
+    [string]$AdminShareName = 'd$'
+  )
 
+  $programFilesFolder = $null
+
+  try {
+    $registry = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Server)
+    $windowsCurrentVersion = $registry.OpenSubKey('SOFTWARE\Microsoft\Windows\CurrentVersion')
+    $programFilesDir = $windowsCurrentVersion.GetValue('ProgramFilesDir')
+
+    if (-not [string]::IsNullOrWhiteSpace($programFilesDir)) {
+      $programFilesFolder = Split-Path -Path $programFilesDir -Leaf
+    }
+  }
+  catch {
+    Write-Verbose -Message ('[{0}] Unable to query ProgramFilesDir from remote registry: {1}' -f $Server, $_.Exception.Message)
+  }
+
+  if (-not $programFilesFolder) {
+    $candidateFolders = @('Program Files', 'Programme', 'Programmi')
+
+    foreach ($folderName in $candidateFolders) {
+      $candidatePath = '\\{0}\{1}\{2}' -f $Server, $AdminShareName, $folderName
+      if (Test-Path -Path $candidatePath) {
+        $programFilesFolder = $folderName
+        break
+      }
+    }
+  }
+
+  if (-not $programFilesFolder) {
+    $programFilesFolder = 'Program Files'
+  }
+
+  return $programFilesFolder
+}
+
+function Convert-LocalPathToUncPath {
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Server,
+    [Parameter(Mandatory = $true)]
+    [string]$LocalPath
+  )
+
+  if ($LocalPath -match '^[a-zA-Z]:\\') {
+    $driveLetter = $LocalPath.Substring(0, 1)
+    $pathWithoutDrive = $LocalPath.Substring(3)
+    return '\\{0}\{1}$\{2}' -f $Server, $driveLetter, $pathWithoutDrive
+  }
+
+  return $null
+}
+
+function Get-ServerLogPath {
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Server,
+    [ValidateSet('Static', 'Dynamic')]
+    [string]$EvaluationMode = 'Static',
+    [string]$AdminShareName = 'd$'
+  )
+
+  if ($EvaluationMode -eq 'Dynamic') {
+    $localPath = $null
+
+    try {
+      if ($LegacyExchange) {
+        $localPath = (Get-TransportServer -Identity $Server -ErrorAction Stop).ReceiveProtocolLogPath.PathName
+      }
+      elseif ($Backend) {
+        $localPath = (Get-TransportService -Identity $Server -ErrorAction Stop).ReceiveProtocolLogPath.PathName
+      }
+      else {
+        $localPath = (Get-FrontendTransportService -Identity $Server -ErrorAction Stop).ReceiveProtocolLogPath.PathName
+      }
+    }
+    catch {
+      Write-Warning ('[{0}] Dynamic log path lookup failed: {1}' -f $Server, $_.Exception.Message)
+      return $null
+    }
+
+    $remotePath = Convert-LocalPathToUncPath -Server $Server -LocalPath $localPath
+    if (-not $remotePath) {
+      Write-Warning ('[{0}] Unable to convert local path to UNC path: {1}' -f $Server, $localPath)
+      return $null
+    }
+
+    Write-Verbose -Message ('[{0}] Dynamic local path: {1}' -f $Server, $localPath)
+    Write-Verbose -Message ('[{0}] Dynamic remote path: {1}' -f $Server, $remotePath)
+
+    return $remotePath
+  }
+
+  $programFilesFolder = Get-StaticProgramFilesFolderName -Server $Server -AdminShareName $AdminShareName
+
+  if ($LegacyExchange) {
+    $subPath = $LegacyExchangeSubPath
+  }
+  elseif ($Backend) {
+    $subPath = $BackendSubPath
+  }
+  else {
+    $subPath = $FrontendSubPath
+  }
+
+  $remotePath = '\\{0}\{1}\{2}\{3}' -f $Server, $AdminShareName, $programFilesFolder, $subPath
+
+  Write-Verbose -Message ('[{0}] Static path using admin share {1}: {2}' -f $Server, $AdminShareName, $remotePath)
+
+  return $remotePath
+}
+
+## MAIN ###########################################
 # Adjust CSV file name to reflect either HUB or FRONTEND transport
 if ($Backend) {
-  $LogPath = $BackendPath
   $CsvFileName = $CsvFileName.Replace('%ROLE%', 'HUB')
 }
 elseif ($LegacyExchange) {
-  $LogPath = $LegacyExchangePath
   $CsvFileName = $CsvFileName.Replace('%ROLE%', 'HUB')
 }
 else {
@@ -159,7 +296,17 @@ foreach ($Server in $Servers) {
 
   $Server = $Server.ToUpper()
 
-  $Path = $LogPath.Replace('%SERVER%', $Server)
+  $Path = Get-ServerLogPath -Server $Server -EvaluationMode $PathEvaluation -AdminShareName $AdminShare
+
+  if (-not $Path) {
+    Write-Warning ('[{0}] Skipping server due to unresolved log path' -f $Server)
+    continue
+  }
+
+  if (-not (Test-Path -Path $Path)) {
+    Write-Warning ('[{0}] Resolved log path does not exist or is not accessible: {1}' -f $Server, $Path)
+    continue
+  }
 
   # fetching log files requires an account w/ administrative access to the target server
   $LogFiles = Get-ChildItem -Path $Path -File | Where-Object { $_.LastWriteTime -gt (Get-Date).AddDays($AddDays) } # | Select-Object -First 1 # For Testing
