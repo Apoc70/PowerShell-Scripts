@@ -6,11 +6,24 @@ Script to generate an html reports of installed software, installed updates and 
 
 This script utilizes the slightly modified function Get-RemoteProgram by Jaap Brasser to fetch information about installed software.
 
+The list of computers can be provided as parameter, via pipeline, or as a TXT or CSV file.
+
 ## Parameters
 
 ### RemoteComputer
 
 Name of the computer to fetch data from (default: local computer)
+
+Accepts pipeline input by value and by property name (ComputerName, Name, Server). This allows piping the output of Get-Content, Import-Csv, Get-ADComputer, or Get-ExchangeServer.
+
+### ServerListFile
+
+Path to a TXT or CSV file containing the computer names to fetch data from.
+
+- TXT: One computer name per line. Empty lines and lines starting with # are ignored. Multiple names per line can be separated by comma or semicolon.
+- CSV: Comma or semicolon delimited file with a header. The computer names are read from the first column named Name, ComputerName, Computer, Server, ServerName, or Fqdn. If no matching column exists, the first column is used.
+
+Computer names provided by -ServerListFile are combined with -RemoteComputer, if both are used. Duplicate names are removed.
 
 ### SoftwareFilter
 
@@ -49,6 +62,24 @@ Get software information about SERVER01, SERVER02 and send email report
 ```
 
 Get software information about SERVER01, SERVER02 and write report to disk only
+
+``` PowerShell
+.\Get-SoftwareInventory.ps1 -ServerListFile .\servers.txt
+```
+
+Get software information about all computers listed in servers.txt and write report to disk only
+
+``` PowerShell
+.\Get-SoftwareInventory.ps1 -ServerListFile .\servers.csv -SendMail -MailFrom postmaster@mcsmemail.de -MailTo it-support@mcsmemail.de -MailServer mymailserver.mcsmemail.de
+```
+
+Get software information about all computers listed in the Name column of servers.csv and send email report
+
+``` PowerShell
+Get-ExchangeServer | .\Get-SoftwareInventory.ps1
+```
+
+Get software information about all Exchange servers (requires Exchange Management Shell)
 
 ## Note
 
