@@ -2,11 +2,15 @@
 
 Export messages from a transport queue to file system for manual replay
 
+Source: [Export-MessageQueue in Exchange4ITPros](https://github.com/Apoc70/Exchange4ITPros/tree/main/Exchange%20Server/Maintenance/Export-MessageQueue)
+
+> **Maintenance note:** This script is now maintained in the [Exchange for IT Pros repository](https://github.com/Apoc70/Exchange4ITPros).
+
 ## Description
 
-This script suspends a transport queue, exports the messages to the local file system. After successful export the messages are optionally deleted from the queue.
+This script suspends messages in a transport queue and exports them to the local file system. After a successful export, the messages can optionally be deleted from the queue.
 
-This script utilizes the GlobalFunctions library [https://github.com/Apoc70/GlobalFunctions](https://github.com/Apoc70/GlobalFunctions)
+This script utilizes the [GlobalFunctions module](https://github.com/Apoc70/Exchange4ITPros/tree/main/Modules/GlobalFunctions).
 
 ## Parameters
 
@@ -21,7 +25,7 @@ Path to folder for exported messages
 
 ### DeleteAfterExport
 
-Switch to delete per Exchange Server subfolders and creating new folders
+After a successful export, prompts to delete suspended messages from the queue without sending an NDR.
 
 ## Examples
 
@@ -37,7 +41,7 @@ Export messages from queue MCMEP01\45534 to D:\ExportedMessages and do not delet
 
 Export messages from queue MCMEP01\45534 to D:\ExportedMessages and delete messages after export
 
-## Note
+## Disclaimer
 
 THIS CODE IS MADE AVAILABLE AS IS, WITHOUT WARRANTY OF ANY KIND. THE ENTIRE
 RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS CODE REMAINS WITH THE USER.
